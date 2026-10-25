@@ -23,12 +23,27 @@ function showPage(name, btn = null) {
 
   if (name === 'dashboard') renderDashboard();
   if (name === 'plan') renderPlan();
-  if (name === 'quiz') { toggleQuizType(); loadChapters(); }
+  if (name === 'quiz') { 
+    document.getElementById('quizArea').classList.add('hidden');
+    document.getElementById('quizSetupArea').classList.remove('hidden');
+    toggleQuizType(); loadChapters(); 
+  }
   if (name === 'analytics') renderExams();
   if (name === 'mistakes') renderMistakes();
 }
 
-// تنظیمات و برنامه خودکار
+// پاک کردن کل برنامه
+function clearPlan() {
+  if(confirm("آیا مطمئن هستید؟ تمام برنامه‌های خودکار و دستی پاک می‌شوند.")) {
+    PLAN = [];
+    DB.set('plan', PLAN);
+    renderPlan();
+    renderDashboard();
+    alert("برنامه پاک شد. حالا می‌توانید برنامه دستی بسازید.");
+  }
+}
+
+// برنامه‌ریزی خودکار
 function saveSetup() {
   const daysLeft = +document.getElementById('daysLeft').value;
   const dailyHours = +document.getElementById('dailyHours').value;
@@ -38,7 +53,9 @@ function saveSetup() {
   DB.set('config', CONFIG);
   
   if (typeof generatePlan === 'function') {
-    PLAN = generatePlan(CONFIG);
+    const autoPlan = generatePlan(CONFIG);
+    // اضافه کردن برنامه جدید به برنامه‌های موجود
+    PLAN = [...PLAN, ...autoPlan];
     DB.set('plan', PLAN);
     showPage('dashboard', document.querySelector('nav button[data-target="dashboard"]'));
   } else {
@@ -128,7 +145,7 @@ function renderPlan() {
   const el = document.getElementById('weeklyPlan');
   
   if (sortedDays.length === 0) {
-    el.innerHTML = '<p style="color:#a1a1aa;">هنوز برنامه‌ای ثبت نشده است.</p>';
+    el.innerHTML = '<p style="color:#a1a1aa; text-align:center;">برنامه‌ای وجود ندارد. از فرم بالا یا تنظیمات استفاده کنید.</p>';
     return;
   }
 
@@ -136,8 +153,8 @@ function renderPlan() {
   sortedDays.forEach(day => {
     html += `<div class="card"><h4>📅 روز ${day}</h4><ul>`;
     byDay[day].forEach(t => {
-      const deleteBtn = t.type === 'manual' ? 
-        `<button onclick="deleteSession('${t.id}')" style="background:transparent; border:none; color:#f43f5e; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-trash"></i></button>` : '';
+      // دکمه حذف برای همه جلسات (چه دستی چه خودکار)
+      const deleteBtn = `<button onclick="deleteSession('${t.id}')" style="background:transparent; border:none; color:#f43f5e; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-trash"></i></button>`;
 
       html += `<li style="display:flex; justify-content:space-between; align-items:center; opacity:${t.done?'0.5':'1'}; text-decoration:${t.done?'line-through':'none'};">
         <span>${t.done ? '✅' : '⬜'} <b>${t.subject}</b> ${t.type==='review'?'(مرور)':''} - ${t.chapter} (${t.minutes}د)</span>
