@@ -1,487 +1,83 @@
-/* =========================================
-   متغیرهای رنگی و فونت (الگو گرفته از سایت نماور)
-========================================= */
 :root {
-  --bg-primary: #0a0a0a;
-  --bg-secondary: #111;
-  --text-primary: #fff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-hover: rgba(77, 166, 255, 0.5);
-  --accent: #4da6ff;
-  --accent-dark: #0066b1;
-  --glow: rgba(77, 166, 255, 0.3);
-  --success: #22c55e;
+  --bg-dark: #0f172a;
+  --bg-card: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --primary: #38bdf8;
   --danger: #f43f5e;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --border: rgba(255,255,255,0.1);
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Inter', 'Vazirmatn', system-ui, sans-serif;
-}
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Vazirmatn', sans-serif; }
+body { background-color: var(--bg-dark); color: var(--text-main); min-height: 100vh; padding-bottom: 50px; }
 
-body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  direction: rtl;
-  min-height: 100vh;
-  padding-bottom: 60px;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  line-height: 1.6;
-}
+/* هدر */
+header { background: rgba(15,23,42,0.9); backdrop-filter: blur(10px); position: sticky; top: 0; z-index: 100; padding: 15px; border-bottom: 1px solid var(--border); display: flex; flex-direction: column; align-items: center; gap: 15px; }
+.brand { color: var(--primary); display: flex; align-items: center; gap: 10px; font-size: 1.5rem; }
+nav { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; width: 100%; max-width: 800px; }
+nav button { background: transparent; color: var(--text-muted); border: 1px solid transparent; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; font-weight: bold; display: flex; align-items: center; gap: 6px; transition: 0.2s; }
+nav button:hover, nav button.active { color: var(--primary); border-color: var(--primary); background: rgba(56,189,248,0.1); }
 
-/* =========================================
-   هدر شیشه‌ای (مشابه نماور)
-========================================= */
-header {
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background: rgba(10, 10, 10, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
-  padding: 16px 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--accent);
-  justify-content: center;
-}
-.brand h1 {
-  font-size: 1.4rem;
-  font-weight: 700;
-  letter-spacing: -0.5px;
-}
-
-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-
-nav button {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid transparent;
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  cursor: pointer;
-  font-size: 0.9rem;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transition: var(--transition);
-}
-
-nav button:hover, nav button.active {
-  color: var(--accent);
-  border-color: var(--border-hover);
-  background: rgba(77, 166, 255, 0.08);
-  box-shadow: 0 0 15px rgba(77, 166, 255, 0.15);
-}
-
-/* =========================================
-   بدنه اصلی
-========================================= */
-main {
-  padding: 30px 20px;
-  max-width: 900px;
-  margin: 0 auto;
-  animation: fadeIn 0.5s ease-out;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
+/* بدنه */
+main { padding: 20px; max-width: 800px; margin: 0 auto; }
 .hidden { display: none !important; }
+.page-title { font-size: 1.3rem; margin-bottom: 20px; border-right: 4px solid var(--primary); padding-right: 10px; }
 
-.page-title {
-  margin-bottom: 24px;
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  border-right: 3px solid var(--accent);
-  padding-right: 12px;
-}
+/* کارت‌ها */
+.card-main { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.card-main h2, .card-main h3 { margin-bottom: 10px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+.subtitle { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 20px; }
 
-/* =========================================
-   کارت‌های اصلی (Card Main)
-========================================= */
-.card-main {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 24px;
-  margin-bottom: 24px;
-  transition: var(--transition);
-}
+/* فرم‌ها */
+.input-group { margin-bottom: 15px; }
+.input-group label { display: block; margin-bottom: 8px; font-size: 0.9rem; color: var(--text-muted); }
+input, select, textarea { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: rgba(0,0,0,0.2); color: #fff; font-size: 1rem; outline: none; transition: 0.2s; }
+input:focus, select:focus, textarea:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(56,189,248,0.2); }
 
-.card-main:hover {
-  border-color: var(--border-hover);
-}
+/* دکمه اصلی */
+.btn-primary { width: 100%; padding: 14px; border-radius: 8px; border: 1px solid var(--primary); background: transparent; color: var(--primary); font-size: 1rem; font-weight: bold; cursor: pointer; transition: 0.2s; display: flex; justify-content: center; align-items: center; gap: 8px; margin-top: 10px; }
+.btn-primary:hover { background: var(--primary); color: #000; }
+.btn-danger { border-color: var(--danger); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
 
-.card-main h2, .card-main h3 {
-  margin-bottom: 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 1.1rem;
-  color: var(--text-primary);
-}
+/* آمار */
+.stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.stats-grid .card { background: var(--bg-card); border: 1px solid var(--border); padding: 15px; border-radius: 10px; text-align: center; font-weight: bold; border-bottom: 3px solid var(--primary); }
 
-.subtitle {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  margin-bottom: 24px;
-}
+/* لیست‌ها */
+.session-list { display: flex; flex-direction: column; gap: 10px; }
+.session-item { display: flex; align-items: center; gap: 15px; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 10px; border: 1px solid var(--border); cursor: pointer; margin-bottom: 0; }
+.session-item:hover { border-color: var(--primary); }
+.session-item input[type="checkbox"], .session-item input[type="radio"] { width: 20px; height: 20px; accent-color: var(--primary); margin: 0; cursor: pointer; }
+.session-info { flex: 1; font-size: 0.95rem; }
+.session-info small { display: block; color: var(--text-muted); margin-top: 4px; font-size: 0.8rem; }
 
-/* =========================================
-   گروه‌های ورودی
-========================================= */
-.input-group {
-  margin-bottom: 16px;
-}
+/* برنامه */
+.plan-grid { display: grid; gap: 15px; }
+.plan-grid .card { background: var(--bg-card); padding: 20px; border-radius: 10px; border: 1px solid var(--border); }
+.plan-grid h4 { color: var(--primary); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+.plan-grid ul { list-style: none; padding: 0; }
+.plan-grid li { padding: 10px 0; border-bottom: 1px dashed var(--border); font-size: 0.9rem; }
 
-.input-group label {
-  display: block;
-  margin-bottom: 8px;
-  color: var(--text-secondary);
-  font-weight: 500;
-  font-size: 0.9rem;
-}
+/* آزمون */
+.chapter-checkboxes { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+.chapter-checkboxes label { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; border: 1px solid var(--border); display: flex; align-items: center; gap: 8px; font-size: 0.85rem; cursor: pointer; margin: 0; }
+.chapter-checkboxes input { width: 16px; height: 16px; margin: 0; accent-color: var(--primary); }
+.timer-card { position: sticky; top: 120px; z-index: 10; background: rgba(15,23,42,0.9); border: 1px solid var(--primary); color: var(--primary); text-align: center; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 1.2rem; margin-bottom: 20px; }
+.question-card { background: var(--bg-card); padding: 20px; border-radius: 10px; margin-bottom: 20px; border: 1px solid var(--border); }
+.question-card h4 { margin-bottom: 15px; line-height: 1.6; color: var(--primary); }
+.option-label { display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.03); padding: 12px; border-radius: 8px; margin-bottom: 10px; border: 1px solid transparent; cursor: pointer; }
+.option-label:hover { border-color: var(--primary); background: rgba(56,189,248,0.05); }
+.option-label input:checked + span { color: var(--primary); font-weight: bold; }
 
-input, select, textarea {
-  width: 100%;
-  padding: 12px 16px;
-  background: #161616;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text-primary);
-  font-size: 0.95rem;
-  outline: none;
-  transition: var(--transition);
-}
+/* اشتباهات */
+.mistake-list { list-style: none; padding: 0; }
+.mistake-list li { background: var(--bg-card); padding: 15px; border-radius: 10px; margin-bottom: 10px; border-right: 4px solid var(--danger); font-size: 0.95rem; }
 
-input:focus, select:focus, textarea:focus {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--glow);
-}
-
-/* =========================================
-   دکمه‌های اصلی (مشابه نماور)
-========================================= */
-.btn-primary {
-  width: 100%;
-  background: transparent;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  padding: 14px;
-  border-radius: var(--radius-md);
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 8px;
-  transition: var(--transition);
-  margin-top: 10px;
-}
-
-.btn-primary:hover {
-  background: rgba(77, 166, 255, 0.1);
-  box-shadow: 0 0 20px var(--glow);
-  transform: translateY(-1px);
-}
-
-.btn-danger {
-  color: var(--danger);
-  border-color: var(--danger);
-}
-.btn-danger:hover {
-  background: rgba(244, 63, 94, 0.1);
-  box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
-}
-
-/* =========================================
-   گرید آمار (داشبورد)
-========================================= */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.stats-grid .card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-  text-align: center;
-  font-weight: 500;
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-  transition: var(--transition);
-}
-
-.stats-grid .card:hover {
-  border-color: var(--border-hover);
-  color: var(--accent);
-}
-
-/* =========================================
-   لیست جلسات (Session List)
-========================================= */
-.session-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.session-item {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  background: #161616;
-  padding: 16px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  transition: var(--transition);
-}
-
-.session-item:hover {
-  border-color: var(--border-hover);
-  background: #1a1a1a;
-}
-
-.session-item input[type="checkbox"], 
-.session-item input[type="radio"] {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: var(--accent);
-  margin: 0;
-}
-
-.session-info {
-  flex: 1;
-  color: var(--text-primary);
-  font-size: 0.95rem;
-}
-
-.session-info small {
-  display: block;
-  color: var(--text-muted);
-  margin-top: 4px;
-  font-size: 0.8rem;
-}
-
-/* =========================================
-   برنامه هفتگی (Plan Grid)
-========================================= */
-.plan-grid {
-  display: grid;
-  gap: 16px;
-}
-
-.plan-grid .card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  padding: 20px;
-}
-
-.plan-grid h4 {
-  color: var(--accent);
-  margin-bottom: 16px;
-  border-bottom: 1px solid var(--border);
-  padding-bottom: 12px;
-  font-size: 1rem;
-}
-
-.plan-grid ul {
-  list-style: none;
-  padding: 0;
-}
-
-.plan-grid li {
-  padding: 10px 0;
-  border-bottom: 1px dashed var(--border);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 0.9rem;
-  color: var(--text-secondary);
-}
-
-/* =========================================
-   چک‌باکس‌های فصل (آزمون‌ساز)
-========================================= */
-.chapter-checkboxes {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-  margin-bottom: 20px;
-}
-
-.chapter-checkboxes label {
-  margin: 0;
-  padding: 12px;
-  background: #161616;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  transition: var(--transition);
-}
-
-.chapter-checkboxes label:hover {
-  border-color: var(--border-hover);
-}
-
-.chapter-checkboxes input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--accent);
-}
-
-/* =========================================
-   آزمون و سوالات
-========================================= */
-.timer-card {
-  text-align: center;
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--accent);
-  position: sticky;
-  top: 140px;
-  z-index: 10;
-  padding: 16px;
-  background: rgba(10, 10, 10, 0.9);
-  backdrop-filter: blur(8px);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  margin-bottom: 24px;
-}
-
-.question-card {
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
-  padding: 24px;
-  border-radius: var(--radius-lg);
-  margin-bottom: 24px;
-}
-
-.question-card h4 {
-  margin-bottom: 20px;
-  line-height: 1.7;
-  color: var(--text-primary);
-  font-size: 1rem;
-}
-
-.option-label {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: #161616;
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  margin-bottom: 10px;
-  border: 1px solid transparent;
-  transition: var(--transition);
-}
-
-.option-label:hover {
-  border-color: var(--border-hover);
-  background: #1a1a1a;
-}
-
-.option-label input:checked + span {
-  color: var(--accent);
-  font-weight: 600;
-}
-
-/* =========================================
-   فرم آزمون
-========================================= */
-.exam-form {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-/* =========================================
-   دفتر اشتباهات
-========================================= */
-.mistake-list {
-  list-style: none;
-  padding: 0;
-}
-
-.mistake-list li {
-  background: var(--bg-secondary);
-  padding: 18px;
-  border-radius: var(--radius-md);
-  margin-bottom: 12px;
-  border-right: 3px solid var(--accent);
-  font-size: 0.95rem;
-  line-height: 1.6;
-  color: var(--text-secondary);
-}
-
-/* =========================================
-   اسکرول‌بار (مشابه نماور)
-========================================= */
-::-webkit-scrollbar {
-  width: 8px;
-}
-::-webkit-scrollbar-track {
-  background: var(--bg-primary);
-}
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 10px;
-}
-::-webkit-scrollbar-thumb:hover {
-  background: var(--accent);
-}
-
-/* =========================================
-   ریسپانسیو
-========================================= */
 @media (max-width: 600px) {
-  header { padding: 12px; }
-  nav button { font-size: 0.8rem; padding: 6px 12px; }
   nav button i { display: none; }
-  main { padding: 20px 15px; }
+  nav button { padding: 6px 12px; font-size: 0.8rem; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
   .chapter-checkboxes { grid-template-columns: 1fr 1fr; }
-  .timer-card { top: 120px; }
+  .timer-card { top: 100px; }
 }
