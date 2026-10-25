@@ -1,12 +1,14 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="fa" dir="rtl" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>برنامه‌ریز هوشمند کنکور تجربی</title>
   
-  <!-- فونت وزیرمتن برای زیبایی -->
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
+  <!-- فونت‌های استفاده شده در سایت نماور -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Vazirmatn:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <!-- آیکون‌های FontAwesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
@@ -14,7 +16,7 @@
 </head>
 <body>
   
-  <!-- هدر شیشه‌ای -->
+  <!-- هدر شیشه‌ای مشابه نماور -->
   <header>
     <div class="brand">
       <i class="fa-solid fa-rocket"></i>
@@ -33,23 +35,26 @@
   <main>
     <!-- صفحه تنظیمات -->
     <section id="page-setup" class="page">
-      <div class="glass-card">
+      <div class="card-main">
         <h2><i class="fa-solid fa-sliders"></i> تنظیمات اولیه</h2>
         <p class="subtitle">برای ساخت برنامه هوشمند، اطلاعات زیر را وارد کنید.</p>
         
-        <label>رشته تحصیلی:
+        <div class="input-group">
+          <label>رشته تحصیلی:</label>
           <select id="field">
             <option value="تجربی">علوم تجربی</option>
           </select>
-        </label>
-        <label>چند روز تا کنکور مانده؟
+        </div>
+        <div class="input-group">
+          <label>چند روز تا کنکور مانده؟</label>
           <input type="number" id="daysLeft" min="1" value="180" placeholder="مثلا 180">
-        </label>
-        <label>هدف مطالعه روزانه (ساعت):
+        </div>
+        <div class="input-group">
+          <label>هدف مطالعه روزانه (ساعت):</label>
           <input type="number" id="dailyHours" min="1" max="16" value="6" placeholder="مثلا 6">
-        </label>
+        </div>
         
-        <button class="btn-glow" onclick="saveSetup()">
+        <button class="btn-primary" onclick="saveSetup()">
           <i class="fa-solid fa-wand-magic-sparkles"></i> ساخت برنامه هوشمند
         </button>
       </div>
@@ -59,11 +64,9 @@
     <section id="page-dashboard" class="page hidden">
       <h2 class="page-title">داشبورد کاربری</h2>
       
-      <!-- کارت‌های آمار -->
-      <div id="summary" class="grid-stats"></div>
+      <div id="summary" class="stats-grid"></div>
       
-      <!-- لیست تسک‌ها -->
-      <div class="glass-card panel-container">
+      <div class="card-main">
         <h3><i class="fa-solid fa-list-check"></i> جلسات باقی‌مانده</h3>
         <p class="subtitle">با تیک زدن هر مورد، از لیست حذف و در آمار ثبت می‌شود.</p>
         <div id="todayTasks" class="session-list"></div>
@@ -73,15 +76,16 @@
     <!-- برنامه هفتگی -->
     <section id="page-plan" class="page hidden">
       <h2 class="page-title">برنامه هفتگی</h2>
-      <div id="weeklyPlan" class="grid-plan"></div>
+      <div id="weeklyPlan" class="plan-grid"></div>
     </section>
 
     <!-- آزمون ساز -->
     <section id="page-quiz" class="page hidden">
       <h2 class="page-title">آزمون‌ساز هوشمند</h2>
       
-      <div class="glass-card">
-        <label>درس مورد نظر:
+      <div class="card-main">
+        <div class="input-group">
+          <label>درس مورد نظر:</label>
           <select id="quizSubject" onchange="loadChapters()">
             <option value="زیست">زیست‌شناسی</option>
             <option value="فیزیک">فیزیک</option>
@@ -89,50 +93,57 @@
             <option value="ریاضی">ریاضی</option>
             <option value="زمین‌شناسی">زمین‌شناسی</option>
           </select>
-        </label>
+        </div>
         
-        <label>نوع آزمون:
+        <div class="input-group">
+          <label>نوع آزمون:</label>
           <select id="quizType" onchange="toggleQuizType()">
             <option value="custom">فصل به فصل (یک پایه)</option>
             <option value="comprehensive">جامع (همه پایه‌ها)</option>
           </select>
-        </label>
+        </div>
         
         <div id="customOptions">
-          <label>انتخاب پایه:
+          <div class="input-group">
+            <label>انتخاب پایه:</label>
             <select id="quizGrade" onchange="loadChapters()">
               <option>دهم</option>
               <option>یازدهم</option>
               <option>دوازدهم</option>
             </select>
-          </label>
+          </div>
           <div id="chapterList" class="chapter-checkboxes"></div>
         </div>
         
-        <label>تعداد سوال:
+        <div class="input-group">
+          <label>تعداد سوال:</label>
           <input type="number" id="quizCount" value="10" min="1" max="50">
-        </label>
+        </div>
         
-        <button class="btn-glow" onclick="createQuiz()">
+        <button class="btn-primary" onclick="createQuiz()">
           <i class="fa-solid fa-play"></i> شروع آزمون
         </button>
       </div>
 
       <div id="quizArea" class="hidden">
-        <div id="quizTimer" class="glass-card timer-card">⏱️ زمان: 00:00</div>
+        <div id="quizTimer" class="timer-card">⏱️ زمان: 00:00</div>
         <div id="quizQuestions"></div>
-        <button class="btn-glow btn-danger" onclick="submitQuiz()">پایان آزمون و ثبت نتیجه</button>
+        <button class="btn-primary btn-danger" onclick="submitQuiz()">پایان آزمون و ثبت نتیجه</button>
       </div>
     </section>
 
     <!-- تحلیل آزمون -->
     <section id="page-analytics" class="page hidden">
       <h2 class="page-title">تحلیل و کارنامه</h2>
-      <div class="glass-card">
+      <div class="card-main">
         <form id="examForm" class="exam-form" onsubmit="event.preventDefault();">
-          <input type="text" placeholder="نام درس (مثلا زیست)" id="examSubject" required>
-          <input type="number" placeholder="درصد (0 تا 100)" id="examPercent" min="0" max="100" required>
-          <button class="btn-glow" onclick="saveExam()">ثبت آزمون</button>
+          <div class="input-group">
+            <input type="text" placeholder="نام درس (مثلا زیست)" id="examSubject" required>
+          </div>
+          <div class="input-group">
+            <input type="number" placeholder="درصد (0 تا 100)" id="examPercent" min="0" max="100" required>
+          </div>
+          <button class="btn-primary" onclick="saveExam()">ثبت آزمون</button>
         </form>
       </div>
       <div id="examList" class="session-list"></div>
@@ -141,15 +152,17 @@
     <!-- دفتر اشتباهات -->
     <section id="page-mistakes" class="page hidden">
       <h2 class="page-title">دفتر اشتباهات</h2>
-      <div class="glass-card">
-        <textarea id="mistakeText" rows="3" placeholder="نکته یا اشتباه مهم را بنویسید..."></textarea>
-        <button class="btn-glow" onclick="addMistake()">افزودن به دفتر</button>
+      <div class="card-main">
+        <div class="input-group">
+          <textarea id="mistakeText" rows="3" placeholder="نکته یا اشتباه مهم را بنویسید..."></textarea>
+        </div>
+        <button class="btn-primary" onclick="addMistake()">افزودن به دفتر</button>
       </div>
       <ul id="mistakeList" class="mistake-list"></ul>
     </section>
   </main>
 
-  <!-- بارگذاری اسکریپت‌ها به ترتیب صحیح -->
+  <!-- بارگذاری اسکریپت‌ها -->
   <script src="js/storage.js"></script>
   <script src="js/planner.js"></script>
   <script src="js/analytics.js"></script>
