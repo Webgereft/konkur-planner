@@ -1,64 +1,71 @@
 /* =========================================
-   تنظیمات پایه و فونت
+   متغیرهای رنگی و فونت (الگو گرفته از سایت نماور)
 ========================================= */
 :root {
-  --bg-color: #0f172a;
-  --surface-color: rgba(30, 41, 59, 0.7);
-  --border-color: rgba(255, 255, 255, 0.1);
-  --primary: #38bdf8;
-  --primary-glow: rgba(56, 189, 248, 0.4);
-  --secondary: #818cf8;
-  --text-main: #f8fafc;
-  --text-muted: #94a3b8;
+  --bg-primary: #0a0a0a;
+  --bg-secondary: #111;
+  --text-primary: #fff;
+  --text-secondary: #a1a1aa;
+  --text-muted: #71717a;
+  --border: rgba(255, 255, 255, 0.08);
+  --border-hover: rgba(77, 166, 255, 0.5);
+  --accent: #4da6ff;
+  --accent-dark: #0066b1;
+  --glow: rgba(77, 166, 255, 0.3);
+  --success: #22c55e;
   --danger: #f43f5e;
-  --success: #10b981;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+  --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 * {
-  box-sizing: border-box;
-  font-family: 'Vazirmatn', Tahoma, sans-serif;
   margin: 0;
   padding: 0;
-  transition: all 0.3s ease;
+  box-sizing: border-box;
+  font-family: 'Inter', 'Vazirmatn', system-ui, sans-serif;
 }
 
 body {
-  background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 50%, #020617 100%);
-  color: var(--text-main);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  direction: rtl;
   min-height: 100vh;
-  padding-bottom: 50px;
+  padding-bottom: 60px;
   overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
 }
 
 /* =========================================
-   هدر شیشه‌ای (Glassmorphism)
+   هدر شیشه‌ای (مشابه نماور)
 ========================================= */
 header {
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border-color);
-  padding: 15px 20px;
   position: sticky;
   top: 0;
   z-index: 1000;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
-  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+  gap: 20px;
 }
 
 .brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: var(--primary);
+  color: var(--accent);
   justify-content: center;
 }
 .brand h1 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  text-shadow: 0 0 10px var(--primary-glow);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }
 
 nav {
@@ -70,29 +77,31 @@ nav {
 
 nav button {
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   border: 1px solid transparent;
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
   cursor: pointer;
   font-size: 0.9rem;
-  font-weight: bold;
+  font-weight: 500;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  transition: var(--transition);
 }
 
 nav button:hover, nav button.active {
-  color: var(--primary);
-  border-color: var(--border-color);
-  background: rgba(56, 189, 248, 0.1);
+  color: var(--accent);
+  border-color: var(--border-hover);
+  background: rgba(77, 166, 255, 0.08);
+  box-shadow: 0 0 15px rgba(77, 166, 255, 0.15);
 }
 
 /* =========================================
    بدنه اصلی
 ========================================= */
 main {
-  padding: 20px;
+  padding: 30px 20px;
   max-width: 900px;
   margin: 0 auto;
   animation: fadeIn 0.5s ease-out;
@@ -106,125 +115,142 @@ main {
 .hidden { display: none !important; }
 
 .page-title {
-  margin-bottom: 20px;
-  font-size: 1.4rem;
-  color: var(--text-main);
-  border-right: 4px solid var(--primary);
-  padding-right: 10px;
+  margin-bottom: 24px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  border-right: 3px solid var(--accent);
+  padding-right: 12px;
 }
 
 /* =========================================
-   کارت‌های شیشه‌ای (Glass Cards)
+   کارت‌های اصلی (Card Main)
 ========================================= */
-.glass-card {
-  background: var(--surface-color);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid var(--border-color);
-  border-radius: 16px;
-  padding: 25px;
-  margin-bottom: 20px;
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+.card-main {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  margin-bottom: 24px;
+  transition: var(--transition);
 }
 
-.glass-card h2, .glass-card h3 {
-  margin-bottom: 10px;
+.card-main:hover {
+  border-color: var(--border-hover);
+}
+
+.card-main h2, .card-main h3 {
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  font-size: 1.1rem;
+  color: var(--text-primary);
 }
 
 .subtitle {
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-size: 0.85rem;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 /* =========================================
-   فرم‌ها و ورودی‌ها
+   گروه‌های ورودی
 ========================================= */
-label {
+.input-group {
+  margin-bottom: 16px;
+}
+
+.input-group label {
   display: block;
-  margin-bottom: 15px;
-  color: var(--text-muted);
-  font-weight: bold;
+  margin-bottom: 8px;
+  color: var(--text-secondary);
+  font-weight: 500;
   font-size: 0.9rem;
 }
 
 input, select, textarea {
   width: 100%;
-  padding: 12px 15px;
-  margin-top: 8px;
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid var(--border-color);
-  border-radius: 10px;
-  color: var(--text-main);
-  font-size: 1rem;
+  padding: 12px 16px;
+  background: #161616;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 0.95rem;
   outline: none;
+  transition: var(--transition);
 }
 
 input:focus, select:focus, textarea:focus {
-  border-color: var(--primary);
-  box-shadow: 0 0 10px var(--primary-glow);
-  background: rgba(0, 0, 0, 0.5);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--glow);
 }
 
 /* =========================================
-   دکمه‌های نئونی
+   دکمه‌های اصلی (مشابه نماور)
 ========================================= */
-.btn-glow {
+.btn-primary {
   width: 100%;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  color: #fff;
-  border: none;
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
   padding: 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   font-size: 1rem;
-  font-weight: bold;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 15px var(--primary-glow);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
+  transition: var(--transition);
   margin-top: 10px;
 }
 
-.btn-glow:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px var(--primary-glow);
-  opacity: 0.9;
+.btn-primary:hover {
+  background: rgba(77, 166, 255, 0.1);
+  box-shadow: 0 0 20px var(--glow);
+  transform: translateY(-1px);
 }
 
 .btn-danger {
-  background: linear-gradient(135deg, #f43f5e, #be123c);
-  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+.btn-danger:hover {
+  background: rgba(244, 63, 94, 0.1);
+  box-shadow: 0 0 20px rgba(244, 63, 94, 0.3);
 }
 
 /* =========================================
-   داشبورد و کارت‌های آمار
+   گرید آمار (داشبورد)
 ========================================= */
-.grid-stats {
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 15px;
-  margin-bottom: 25px;
+  gap: 16px;
+  margin-bottom: 24px;
 }
 
-.grid-stats .card {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 20px 15px;
+.stats-grid .card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 20px;
   text-align: center;
-  font-weight: bold;
-  font-size: 1rem;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  border-bottom: 3px solid var(--primary);
+  font-weight: 500;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.stats-grid .card:hover {
+  border-color: var(--border-hover);
+  color: var(--accent);
 }
 
 /* =========================================
-   لیست جلسات و تسک‌ها
+   لیست جلسات (Session List)
 ========================================= */
 .session-list {
   display: flex;
@@ -235,161 +261,180 @@ input:focus, select:focus, textarea:focus {
 .session-item {
   display: flex;
   align-items: center;
-  gap: 15px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 15px;
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
+  gap: 16px;
+  background: #161616;
+  padding: 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   cursor: pointer;
-  margin-bottom: 0;
+  transition: var(--transition);
 }
 
 .session-item:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--primary);
+  border-color: var(--border-hover);
+  background: #1a1a1a;
 }
 
 .session-item input[type="checkbox"], 
 .session-item input[type="radio"] {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   cursor: pointer;
-  accent-color: var(--primary);
+  accent-color: var(--accent);
   margin: 0;
 }
 
 .session-info {
   flex: 1;
-  color: var(--text-main);
+  color: var(--text-primary);
   font-size: 0.95rem;
 }
 
 .session-info small {
   display: block;
   color: var(--text-muted);
-  margin-top: 5px;
+  margin-top: 4px;
   font-size: 0.8rem;
 }
 
 /* =========================================
-   برنامه هفتگی
+   برنامه هفتگی (Plan Grid)
 ========================================= */
-.grid-plan {
+.plan-grid {
   display: grid;
-  gap: 15px;
+  gap: 16px;
 }
 
-.grid-plan .card {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
+.plan-grid .card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   padding: 20px;
 }
 
-.grid-plan h4 {
-  color: var(--primary);
-  margin-bottom: 15px;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 10px;
+.plan-grid h4 {
+  color: var(--accent);
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 12px;
+  font-size: 1rem;
 }
 
-.grid-plan ul {
+.plan-grid ul {
   list-style: none;
   padding: 0;
 }
 
-.grid-plan li {
+.plan-grid li {
   padding: 10px 0;
-  border-bottom: 1px dashed var(--border-color);
+  border-bottom: 1px dashed var(--border);
   display: flex;
   align-items: center;
   gap: 10px;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }
 
 /* =========================================
-   آزمون ساز و چک باکس‌ها
+   چک‌باکس‌های فصل (آزمون‌ساز)
 ========================================= */
 .chapter-checkboxes {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
   margin-bottom: 20px;
 }
 
 .chapter-checkboxes label {
   margin: 0;
-  padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
+  padding: 12px;
+  background: #161616;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 8px;
   font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.chapter-checkboxes label:hover {
+  border-color: var(--border-hover);
 }
 
 .chapter-checkboxes input {
   width: 18px;
   height: 18px;
   margin: 0;
+  accent-color: var(--accent);
 }
 
-/* سوالات آزمون */
+/* =========================================
+   آزمون و سوالات
+========================================= */
 .timer-card {
   text-align: center;
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--danger);
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--accent);
   position: sticky;
-  top: 130px;
+  top: 140px;
   z-index: 10;
-  padding: 15px;
+  padding: 16px;
+  background: rgba(10, 10, 10, 0.9);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  margin-bottom: 24px;
 }
 
 .question-card {
-  background: var(--surface-color);
-  border: 1px solid var(--border-color);
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 20px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  padding: 24px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 24px;
 }
 
 .question-card h4 {
-  margin-bottom: 15px;
-  line-height: 1.6;
-  color: var(--primary);
+  margin-bottom: 20px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  font-size: 1rem;
 }
 
 .option-label {
   display: flex;
   align-items: center;
-  gap: 10px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 12px 15px;
-  border-radius: 8px;
+  gap: 12px;
+  background: #161616;
+  padding: 14px 18px;
+  border-radius: var(--radius-md);
   cursor: pointer;
   margin-bottom: 10px;
   border: 1px solid transparent;
+  transition: var(--transition);
 }
 
 .option-label:hover {
-  border-color: var(--primary);
-  background: rgba(56, 189, 248, 0.1);
+  border-color: var(--border-hover);
+  background: #1a1a1a;
 }
 
 .option-label input:checked + span {
-  color: var(--primary);
-  font-weight: bold;
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* =========================================
-   فرم و لیست آزمون
+   فرم آزمون
 ========================================= */
 .exam-form {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 16px;
 }
 
 /* =========================================
@@ -401,42 +446,42 @@ input:focus, select:focus, textarea:focus {
 }
 
 .mistake-list li {
-  background: var(--surface-color);
-  padding: 15px;
-  border-radius: 10px;
+  background: var(--bg-secondary);
+  padding: 18px;
+  border-radius: var(--radius-md);
   margin-bottom: 12px;
-  border-right: 4px solid var(--danger);
+  border-right: 3px solid var(--accent);
   font-size: 0.95rem;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: var(--text-secondary);
 }
 
 /* =========================================
-   اسکرول‌بار سفارشی
+   اسکرول‌بار (مشابه نماور)
 ========================================= */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: var(--bg-color);
+  background: var(--bg-primary);
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--primary);
+  background: #333;
   border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--secondary);
+  background: var(--accent);
 }
 
 /* =========================================
-   ریسپانسیو برای موبایل
+   ریسپانسیو
 ========================================= */
 @media (max-width: 600px) {
-  header { padding: 10px; }
-  nav button { font-size: 0.8rem; padding: 6px 10px; }
-  nav button i { display: none; } /* مخفی کردن آیکون در موبایل برای صرفه جویی در فضا */
-  main { padding: 15px; }
-  .glass-card { padding: 15px; }
-  .grid-stats { grid-template-columns: 1fr 1fr; }
+  header { padding: 12px; }
+  nav button { font-size: 0.8rem; padding: 6px 12px; }
+  nav button i { display: none; }
+  main { padding: 20px 15px; }
+  .stats-grid { grid-template-columns: 1fr 1fr; }
   .chapter-checkboxes { grid-template-columns: 1fr 1fr; }
-  .timer-card { top: 90px; }
+  .timer-card { top: 120px; }
 }
