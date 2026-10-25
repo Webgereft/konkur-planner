@@ -28,7 +28,7 @@ function showPage(name, btn = null) {
   if (name === 'mistakes') renderMistakes();
 }
 
-// 1. تنظیمات (برنامه خودکار)
+// تنظیمات و برنامه خودکار
 function saveSetup() {
   const daysLeft = +document.getElementById('daysLeft').value;
   const dailyHours = +document.getElementById('dailyHours').value;
@@ -46,7 +46,7 @@ function saveSetup() {
   }
 }
 
-// 2. برنامه‌ریزی دستی (جدید!)
+// برنامه‌ریزی دستی
 function addManualSession() {
   const day = +document.getElementById('manualDay').value;
   const subject = document.getElementById('manualSubject').value;
@@ -69,15 +69,12 @@ function addManualSession() {
 
   PLAN.push(newSession);
   DB.set('plan', PLAN);
-  
-  // پاک کردن فرم
   document.getElementById('manualChapter').value = '';
   
   renderPlan();
-  alert("جلسه با موفقیت به برنامه اضافه شد!");
+  alert("جلسه با موفقیت اضافه شد!");
 }
 
-// 3. حذف جلسه دستی
 function deleteSession(id) {
   if(confirm("آیا از حذف این جلسه مطمئن هستید؟")) {
     PLAN = PLAN.filter(s => s.id !== id);
@@ -87,7 +84,7 @@ function deleteSession(id) {
   }
 }
 
-// 4. داشبورد
+// داشبورد
 function renderDashboard() {
   if (!CONFIG) return;
   const pending = PLAN.filter(s => !s.done).sort((a, b) => a.day - b.day);
@@ -123,12 +120,10 @@ function toggleSession(id) {
   if (s) { s.done = !s.done; DB.set('plan', PLAN); renderDashboard(); }
 }
 
-// 5. برنامه کل
+// برنامه کل
 function renderPlan() {
   const byDay = {};
   PLAN.forEach(p => { if (!byDay[p.day]) byDay[p.day] = []; byDay[p.day].push(p); });
-  
-  // مرتب کردن روزها
   const sortedDays = Object.keys(byDay).sort((a, b) => a - b);
   const el = document.getElementById('weeklyPlan');
   
@@ -140,9 +135,7 @@ function renderPlan() {
   let html = '';
   sortedDays.forEach(day => {
     html += `<div class="card"><h4>📅 روز ${day}</h4><ul>`;
-    
     byDay[day].forEach(t => {
-      // اگر جلسه دستی بود، دکمه حذف نشون بده
       const deleteBtn = t.type === 'manual' ? 
         `<button onclick="deleteSession('${t.id}')" style="background:transparent; border:none; color:#f43f5e; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-trash"></i></button>` : '';
 
@@ -151,13 +144,12 @@ function renderPlan() {
         ${deleteBtn}
       </li>`;
     });
-    
     html += `</ul></div>`;
   });
   el.innerHTML = html;
 }
 
-// 6. آزمون ساز
+// آزمون‌ساز
 function toggleQuizType() {
   const type = document.getElementById('quizType').value;
   document.getElementById('customOptions').style.display = type === 'custom' ? 'block' : 'none';
@@ -194,7 +186,7 @@ function createQuiz() {
   }
 }
 
-// 7. تحلیل آزمون
+// تحلیل
 function saveExam() {
   const subject = document.getElementById('examSubject').value;
   const percent = +document.getElementById('examPercent').value;
@@ -204,7 +196,6 @@ function saveExam() {
   EXAMS.push({ subject, percent, traz: Math.round(traz) });
   DB.set('exams', EXAMS);
   renderExams();
-  
   document.getElementById('examSubject').value = '';
   document.getElementById('examPercent').value = '';
 }
@@ -222,7 +213,7 @@ function renderExams() {
   `).join('');
 }
 
-// 8. دفتر اشتباهات
+// اشتباهات
 function addMistake() {
   const txt = document.getElementById('mistakeText').value.trim();
   if (!txt) return;
