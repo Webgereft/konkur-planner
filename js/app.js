@@ -1,40 +1,26 @@
-// ==========================================
-// متغیرهای سراسری
-// ==========================================
 let CONFIG = DB.get('config', null);
 let PLAN = DB.get('plan', []);
 let EXAMS = DB.get('exams', []);
 let MISTAKES = DB.get('mistakes', []);
 
-// ==========================================
-// راه‌اندازی اولیه
-// ==========================================
 function init() {
   if (!CONFIG) {
-    showPage('setup');
+    showPage('setup', document.querySelector('nav button[data-target="setup"]'));
   } else {
-    showPage('dashboard', document.querySelector('nav button:nth-child(2)'));
+    showPage('dashboard', document.querySelector('nav button[data-target="dashboard"]'));
   }
 }
 
-// ==========================================
-// مدیریت صفحات (Paging)
-// ==========================================
 function showPage(name, btn = null) {
-  // مخفی کردن همه صفحات
   document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  const target = document.getElementById('page-' + name);
+  if (target) target.classList.remove('hidden');
   
-  // نمایش صفحه هدف
-  const targetPage = document.getElementById('page-' + name);
-  if (targetPage) targetPage.classList.remove('hidden');
-  
-  // آپدیت دکمه فعال در منو
   if (btn) {
     document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
   }
 
-  // فراخوانی توابع رندر برای هر صفحه
   if (name === 'dashboard') renderDashboard();
   if (name === 'plan') renderPlan();
   if (name === 'quiz') { toggleQuizType(); loadChapters(); }
@@ -42,130 +28,136 @@ function showPage(name, btn = null) {
   if (name === 'mistakes') renderMistakes();
 }
 
-// ==========================================
-// ۱. بخش تنظیمات (Setup)
-// ==========================================
+// 1. تنظیمات (برنامه خودکار)
 function saveSetup() {
-  const field = document.getElementById('field').value;
   const daysLeft = +document.getElementById('daysLeft').value;
   const dailyHours = +document.getElementById('dailyHours').value;
-  
-  if (!daysLeft || !dailyHours) {
-    alert("لطفاً روزهای باقی‌مانده و ساعت مطالعه را وارد کنید.");
-    return;
-  }
+  if (!daysLeft || !dailyHours) return alert("مقادیر را وارد کنید");
 
-  CONFIG = { field, daysLeft, dailyHours };
+  CONFIG = { field: 'تجربی', daysLeft, dailyHours };
   DB.set('config', CONFIG);
   
-  // ساخت برنامه هوشمند
   if (typeof generatePlan === 'function') {
     PLAN = generatePlan(CONFIG);
     DB.set('plan', PLAN);
+    showPage('dashboard', document.querySelector('nav button[data-target="dashboard"]'));
   } else {
-    alert("خطا: تابع برنامه‌ریزی یافت نشد. فایل planner.js را چک کنید.");
-    return;
+    alert("خطا: فایل planner.js لود نشده است.");
   }
-  
-  // رفتن به داشبورد
-  showPage('dashboard', document.querySelector('nav button:nth-child(2)'));
 }
 
-// ==========================================
-// ۲. داشبورد و پنل انجام کارها (Dashboard)
-// ==========================================
+// 2. برنامه‌ریزی دستی (جدید!)
+function addManualSession() {
+  const day = +document.getElementById('manualDay').value;
+  const subject = document.getElementById('manualSubject').value;
+  const chapter = document.getElementById('manualChapter').value.trim();
+  const minutes = +document.getElementById('manualMinutes').value;
+
+  if (!day || !chapter || !minutes) {
+    return alert("لطفاً روز، مبحث و زمان را وارد کنید.");
+  }
+
+  const newSession = {
+    id: 'manual_' + Date.now(),
+    day: day,
+    subject: subject,
+    chapter: chapter,
+    minutes: minutes,
+    type: 'manual',
+    done: false
+  };
+
+  PLAN.push(newSession);
+  DB.set('plan', PLAN);
+  
+  // پاک کردن فرم
+  document.getElementById('manualChapter').value = '';
+  
+  renderPlan();
+  alert("جلسه با موفقیت به برنامه اضافه شد!");
+}
+
+// 3. حذف جلسه دستی
+function deleteSession(id) {
+  if(confirm("آیا از حذف این جلسه مطمئن هستید؟")) {
+    PLAN = PLAN.filter(s => s.id !== id);
+    DB.set('plan', PLAN);
+    renderPlan();
+    renderDashboard();
+  }
+}
+
+// 4. داشبورد
 function renderDashboard() {
   if (!CONFIG) return;
-  
-  const allPending = PLAN.filter(s => !s.done).sort((a, b) => a.day - b.day);
-  const totalDone = PLAN.filter(s => s.done).length;
-  const totalTasks = PLAN.length;
-  const doneMinutes = PLAN.filter(s => s.done).reduce((sum, s) => sum + s.minutes, 0);
+  const pending = PLAN.filter(s => !s.done).sort((a, b) => a.day - b.day);
+  const done = PLAN.filter(s => s.done).length;
+  const doneMin = PLAN.filter(s => s.done).reduce((sum, s) => sum + s.minutes, 0);
 
-  // نمایش خلاصه وضعیت
   document.getElementById('summary').innerHTML = `
     <div class="card">📖 رشته: ${CONFIG.field}</div>
     <div class="card">⏳ روز مانده: ${CONFIG.daysLeft}</div>
-    <div class="card">✅ انجام شده: ${totalDone} از ${totalTasks} جلسه</div>
-    <div class="card">⏱️ زمان مطالعه: ${Math.round(doneMinutes/60)} ساعت</div>
+    <div class="card">✅ انجام شده: ${done} از ${PLAN.length}</div>
+    <div class="card">⏱️ مطالعه: ${Math.round(doneMin/60)} ساعت</div>
   `;
 
-  // نمایش لیست جلسات در پنل
-  const panelEl = document.getElementById('todayTasks');
-  if (allPending.length === 0) {
-    panelEl.innerHTML = '<div class="card" style="border-color:#4ecca3; text-align:center;">🎉 تبریک! تمام برنامه انجام شد.</div>';
+  const panel = document.getElementById('todayTasks');
+  if (pending.length === 0) {
+    panel.innerHTML = '<div class="card" style="border-color:#10b981; text-align:center;">🎉 همه جلسات انجام شد!</div>';
     return;
   }
 
-  let html = '<div class="session-list">';
-  allPending.slice(0, 15).forEach(session => {
-    const isReview = session.type === 'review';
-    const badge = isReview ? '<span style="color:#f9ca24">[مرور]</span>' : '';
-    
-    html += `
-      <label class="session-item">
-        <input type="checkbox" onchange="toggleSession('${session.id}')">
-        <div class="session-info">
-          <strong>${session.subject} ${badge}</strong> - ${session.chapter}
-          <small>📅 روز ${session.day} | ⏱️ ${session.minutes} دقیقه</small>
-        </div>
-      </label>
-    `;
-  });
-  html += '</div>';
-  panelEl.innerHTML = html;
+  panel.innerHTML = pending.slice(0, 15).map(s => `
+    <label class="session-item">
+      <input type="checkbox" onchange="toggleSession('${s.id}')">
+      <div class="session-info">
+        <strong>${s.subject} ${s.type==='review'?'(مرور)':''} ${s.type==='manual'?'(دستی)':''}</strong> - ${s.chapter}
+        <small>📅 روز ${s.day} | ⏱️ ${s.minutes} دقیقه</small>
+      </div>
+    </label>
+  `).join('');
 }
 
-// تیک زدن جلسه
-function toggleSession(sessionId) {
-  const session = PLAN.find(s => s.id === sessionId);
-  if (!session) return;
-  session.done = !session.done;
-  DB.set('plan', PLAN);
-  renderDashboard(); // آپدیت خودکار
+function toggleSession(id) {
+  const s = PLAN.find(x => x.id === id);
+  if (s) { s.done = !s.done; DB.set('plan', PLAN); renderDashboard(); }
 }
 
-// ==========================================
-// ۳. برنامه کل (Full Plan)
-// ==========================================
+// 5. برنامه کل
 function renderPlan() {
   const byDay = {};
-  PLAN.forEach(p => {
-    if (!byDay[p.day]) byDay[p.day] = [];
-    byDay[p.day].push(p);
-  });
-
+  PLAN.forEach(p => { if (!byDay[p.day]) byDay[p.day] = []; byDay[p.day].push(p); });
+  
+  // مرتب کردن روزها
+  const sortedDays = Object.keys(byDay).sort((a, b) => a - b);
   const el = document.getElementById('weeklyPlan');
-  if (Object.keys(byDay).length === 0) {
-    el.innerHTML = '<p>برنامه‌ای ساخته نشده است. به تنظیمات بروید.</p>';
+  
+  if (sortedDays.length === 0) {
+    el.innerHTML = '<p style="color:#a1a1aa;">هنوز برنامه‌ای ثبت نشده است.</p>';
     return;
   }
 
   let html = '';
-  for (let i = 1; i <= 7; i++) {
-    if (!byDay[i]) continue;
+  sortedDays.forEach(day => {
+    html += `<div class="card"><h4>📅 روز ${day}</h4><ul>`;
     
-    html += `<div class="card">
-      <h4 style="margin-top:0; color:#4ecca3;">📅 روز ${i}</h4>
-      <ul style="padding-right: 20px; margin: 0;">`;
-      
-    byDay[i].forEach(t => {
-      const opacity = t.done ? '0.5' : '1';
-      const textDec = t.done ? 'line-through' : 'none';
-      const badge = t.type === 'review' ? ' (مرور)' : '';
-      html += `<li style="margin-bottom:8px; opacity:${opacity}; text-decoration:${textDec};">
-        ${t.done ? '✅' : '⬜'} ${t.subject}${badge} - ${t.chapter} (${t.minutes}د)
+    byDay[day].forEach(t => {
+      // اگر جلسه دستی بود، دکمه حذف نشون بده
+      const deleteBtn = t.type === 'manual' ? 
+        `<button onclick="deleteSession('${t.id}')" style="background:transparent; border:none; color:#f43f5e; cursor:pointer; font-size:1rem;"><i class="fa-solid fa-trash"></i></button>` : '';
+
+      html += `<li style="display:flex; justify-content:space-between; align-items:center; opacity:${t.done?'0.5':'1'}; text-decoration:${t.done?'line-through':'none'};">
+        <span>${t.done ? '✅' : '⬜'} <b>${t.subject}</b> ${t.type==='review'?'(مرور)':''} - ${t.chapter} (${t.minutes}د)</span>
+        ${deleteBtn}
       </li>`;
     });
     
     html += `</ul></div>`;
-  }
+  });
   el.innerHTML = html;
 }
 
-// ==========================================
-// ۴. آزمون‌ساز (Quiz Builder UI)
-// ==========================================
+// 6. آزمون ساز
 function toggleQuizType() {
   const type = document.getElementById('quizType').value;
   document.getElementById('customOptions').style.display = type === 'custom' ? 'block' : 'none';
@@ -174,23 +166,16 @@ function toggleQuizType() {
 function loadChapters() {
   const subject = document.getElementById('quizSubject').value;
   const grade = document.getElementById('quizGrade').value;
+  const chapters = (typeof QUESTION_BANK !== 'undefined' && QUESTION_BANK[subject] && QUESTION_BANK[subject][grade]) ? QUESTION_BANK[subject][grade] : {};
   
-  // استفاده از دیتابیسی که در فایل quiz-engine.js وجود دارد
-  const chapters = QUESTION_BANK[subject]?.[grade] || {};
-  
-  const listEl = document.getElementById('chapterList');
+  const list = document.getElementById('chapterList');
   const keys = Object.keys(chapters);
-  
   if (keys.length === 0) {
-    listEl.innerHTML = '<p style="color:#a0a0a0;">سوالی برای این پایه ثبت نشده است.</p>';
+    list.innerHTML = '<p style="color:#a1a1aa; font-size:0.8rem;">سوالی برای این درس ثبت نشده.</p>';
     return;
   }
-
-  listEl.innerHTML = keys.map(ch => `
-    <label class="session-item">
-      <input type="checkbox" value="${ch}" checked>
-      <span>${ch}</span>
-    </label>
+  list.innerHTML = keys.map(ch => `
+    <label><input type="checkbox" value="${ch}" checked> ${ch}</label>
   `).join('');
 }
 
@@ -201,71 +186,59 @@ function createQuiz() {
   
   if (type === 'custom') {
     const grade = document.getElementById('quizGrade').value;
-    const chapters = [...document.querySelectorAll('#chapterList input:checked')].map(i => i.value);
-    
-    if (chapters.length === 0) { 
-      alert("حداقل یک فصل انتخاب کنید."); 
-      return; 
-    }
-    // فراخوانی تابع از quiz-engine.js
-    if (typeof startCustomQuiz === 'function') {
-      startCustomQuiz(subject, grade, chapters, count);
-    }
+    const chs = [...document.querySelectorAll('#chapterList input:checked')].map(i => i.value);
+    if (chs.length === 0) return alert("یک فصل انتخاب کنید");
+    if (typeof startCustomQuiz === 'function') startCustomQuiz(subject, grade, chs, count);
   } else {
-    if (typeof startComprehensiveQuiz === 'function') {
-      startComprehensiveQuiz(subject, count);
-    }
+    if (typeof startComprehensiveQuiz === 'function') startComprehensiveQuiz(subject, count);
   }
 }
 
-// ==========================================
-// ۵. تحلیل آزمون (Exam Analytics)
-// ==========================================
+// 7. تحلیل آزمون
+function saveExam() {
+  const subject = document.getElementById('examSubject').value;
+  const percent = +document.getElementById('examPercent').value;
+  if (!subject || isNaN(percent)) return alert("نام درس و درصد را وارد کنید");
+
+  const traz = 5000 + (percent - 50) * 20; 
+  EXAMS.push({ subject, percent, traz: Math.round(traz) });
+  DB.set('exams', EXAMS);
+  renderExams();
+  
+  document.getElementById('examSubject').value = '';
+  document.getElementById('examPercent').value = '';
+}
+
 function renderExams() {
   const el = document.getElementById('examList');
-  if (!el) return;
-  
   if (EXAMS.length === 0) {
-    el.innerHTML = '<p style="color:#a0a0a0;">هنوز آزمونی ثبت نشده است.</p>';
+    el.innerHTML = '<p style="color:#a1a1aa;">آزمونی ثبت نشده است.</p>';
     return;
   }
-
-  let html = '';
-  EXAMS.slice().reverse().forEach(e => {
-    html += `<div class="card">${e.subject}: ${e.percent}% — تراز تخمینی: ${e.traz}</div>`;
-  });
-  el.innerHTML = html;
+  el.innerHTML = EXAMS.slice().reverse().map(e => `
+    <div class="session-item" style="cursor:default;">
+      <div class="session-info"><strong>${e.subject}</strong>: ${e.percent}% (تراز تخمینی: ${e.traz})</div>
+    </div>
+  `).join('');
 }
 
-// ==========================================
-// ۶. دفتر اشتباهات (Mistakes)
-// ==========================================
+// 8. دفتر اشتباهات
 function addMistake() {
   const txt = document.getElementById('mistakeText').value.trim();
   if (!txt) return;
-  
-  MISTAKES.push({ text: txt, date: Date.now() });
+  MISTAKES.push({ text: txt });
   DB.set('mistakes', MISTAKES);
-  
   document.getElementById('mistakeText').value = '';
   renderMistakes();
 }
 
 function renderMistakes() {
   const el = document.getElementById('mistakeList');
-  if (!el) return;
-
   if (MISTAKES.length === 0) {
-    el.innerHTML = '<p style="color:#a0a0a0;">دفتر اشتباهات خالی است.</p>';
+    el.innerHTML = '<p style="color:#a1a1aa;">دفتر خالی است.</p>';
     return;
   }
-
-  el.innerHTML = MISTAKES.slice().reverse().map(m => `
-    <li>${m.text}</li>
-  `).join('');
+  el.innerHTML = MISTAKES.slice().reverse().map(m => `<li>${m.text}</li>`).join('');
 }
 
-// ==========================================
-// شروع به کار
-// ==========================================
 init();
