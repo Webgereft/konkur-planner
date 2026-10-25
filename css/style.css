@@ -1,0 +1,38 @@
+* { box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
+body { margin: 0; background: #1a1a2e; color: #e0e0e0; padding-bottom: 50px; }
+header { background: #16213e; padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+header h1 { margin: 0 0 15px 0; font-size: 1.5rem; color: #4ecca3; }
+header nav { display: flex; flex-wrap: wrap; gap: 8px; }
+header nav button { margin: 0; padding: 8px 12px; cursor: pointer; border: none; border-radius: 6px; background: #0f3460; color: #fff; transition: 0.2s; font-size: 0.9rem; }
+header nav button:hover, header nav button.active { background: #4ecca3; color: #1a1a2e; font-weight: bold; }
+main { padding: 20px; max-width: 900px; margin: auto; }
+.hidden { display: none !important; }
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
+.card { background: #16213e; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-right: 4px solid #4ecca3; }
+label { display: block; margin: 15px 0; }
+input, select, textarea { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #0f3460; border-radius: 8px; background: #0f3460; color: #fff; font-size: 1rem; outline: none; }
+input:focus, textarea:focus { border-color: #4ecca3; }
+button { background: #4ecca3; color: #1a1a2e; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; margin-top: 10px; }
+button:hover { background: #45b590; }
+
+/* استایل‌های پنل کاربری */
+.panel-container { background: #16213e; padding: 20px; border-radius: 10px; margin-top: 20px; }
+.session-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+.session-item { display: flex; align-items: center; gap: 15px; background: #0f3460; padding: 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; margin: 0; }
+.session-item:hover { background: #153e75; }
+.session-item input[type="checkbox"], .session-item input[type="radio"] { width: 24px; height: 24px; cursor: pointer; accent-color: #4ecca3; margin: 0; }
+.session-info { flex: 1; line-height: 1.5; }
+.session-info small { display: block; color: #a0a0a0; font-size: 0.85rem; }
+
+/* استایل‌های آزمون‌ساز */
+.timer-card { text-align: center; font-size: 1.2rem; font-weight: bold; color: #e94560; position: sticky; top: 80px; z-index: 10; }
+.question-card { background: #16213e; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+.question-card h4 { margin-top: 0; line-height: 1.6; color: #4ecca3; }
+.option-label { display: flex; align-items: center; gap: 10px; background: #0f3460; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; border: 1px solid transparent; }
+.option-label:hover { border-color: #4ecca3; }
+.option-label input:checked + span { color: #4ecca3; font-weight: bold; }
+.btn-submit { background: #e94560; font-size: 1.1rem; padding: 15px; }
+
+/* دفتر اشتباهات */
+.mistake-list { list-style: none; padding: 0; }
+.mistake-list li { background: #16213e; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid #e94560; }
