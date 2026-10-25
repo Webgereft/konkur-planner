@@ -1,38 +1,442 @@
-* { box-sizing: border-box; font-family: Tahoma, Arial, sans-serif; }
-body { margin: 0; background: #1a1a2e; color: #e0e0e0; padding-bottom: 50px; }
-header { background: #16213e; padding: 15px 20px; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-header h1 { margin: 0 0 15px 0; font-size: 1.5rem; color: #4ecca3; }
-header nav { display: flex; flex-wrap: wrap; gap: 8px; }
-header nav button { margin: 0; padding: 8px 12px; cursor: pointer; border: none; border-radius: 6px; background: #0f3460; color: #fff; transition: 0.2s; font-size: 0.9rem; }
-header nav button:hover, header nav button.active { background: #4ecca3; color: #1a1a2e; font-weight: bold; }
-main { padding: 20px; max-width: 900px; margin: auto; }
+/* =========================================
+   تنظیمات پایه و فونت
+========================================= */
+:root {
+  --bg-color: #0f172a;
+  --surface-color: rgba(30, 41, 59, 0.7);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --primary: #38bdf8;
+  --primary-glow: rgba(56, 189, 248, 0.4);
+  --secondary: #818cf8;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --danger: #f43f5e;
+  --success: #10b981;
+}
+
+* {
+  box-sizing: border-box;
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  margin: 0;
+  padding: 0;
+  transition: all 0.3s ease;
+}
+
+body {
+  background: radial-gradient(circle at top right, #1e1b4b 0%, #0f172a 50%, #020617 100%);
+  color: var(--text-main);
+  min-height: 100vh;
+  padding-bottom: 50px;
+  overflow-x: hidden;
+}
+
+/* =========================================
+   هدر شیشه‌ای (Glassmorphism)
+========================================= */
+header {
+  background: rgba(15, 23, 42, 0.8);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border-color);
+  padding: 15px 20px;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--primary);
+  justify-content: center;
+}
+.brand h1 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-shadow: 0 0 10px var(--primary-glow);
+}
+
+nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+nav button {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+nav button:hover, nav button.active {
+  color: var(--primary);
+  border-color: var(--border-color);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+/* =========================================
+   بدنه اصلی
+========================================= */
+main {
+  padding: 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
 .hidden { display: none !important; }
-.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px; }
-.card { background: #16213e; padding: 15px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.3); border-right: 4px solid #4ecca3; }
-label { display: block; margin: 15px 0; }
-input, select, textarea { width: 100%; padding: 12px; margin-top: 8px; border: 1px solid #0f3460; border-radius: 8px; background: #0f3460; color: #fff; font-size: 1rem; outline: none; }
-input:focus, textarea:focus { border-color: #4ecca3; }
-button { background: #4ecca3; color: #1a1a2e; border: none; padding: 12px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; width: 100%; margin-top: 10px; }
-button:hover { background: #45b590; }
 
-/* استایل‌های پنل کاربری */
-.panel-container { background: #16213e; padding: 20px; border-radius: 10px; margin-top: 20px; }
-.session-list { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
-.session-item { display: flex; align-items: center; gap: 15px; background: #0f3460; padding: 15px; border-radius: 8px; cursor: pointer; transition: 0.2s; margin: 0; }
-.session-item:hover { background: #153e75; }
-.session-item input[type="checkbox"], .session-item input[type="radio"] { width: 24px; height: 24px; cursor: pointer; accent-color: #4ecca3; margin: 0; }
-.session-info { flex: 1; line-height: 1.5; }
-.session-info small { display: block; color: #a0a0a0; font-size: 0.85rem; }
+.page-title {
+  margin-bottom: 20px;
+  font-size: 1.4rem;
+  color: var(--text-main);
+  border-right: 4px solid var(--primary);
+  padding-right: 10px;
+}
 
-/* استایل‌های آزمون‌ساز */
-.timer-card { text-align: center; font-size: 1.2rem; font-weight: bold; color: #e94560; position: sticky; top: 80px; z-index: 10; }
-.question-card { background: #16213e; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
-.question-card h4 { margin-top: 0; line-height: 1.6; color: #4ecca3; }
-.option-label { display: flex; align-items: center; gap: 10px; background: #0f3460; padding: 10px 15px; border-radius: 8px; cursor: pointer; margin-bottom: 10px; border: 1px solid transparent; }
-.option-label:hover { border-color: #4ecca3; }
-.option-label input:checked + span { color: #4ecca3; font-weight: bold; }
-.btn-submit { background: #e94560; font-size: 1.1rem; padding: 15px; }
+/* =========================================
+   کارت‌های شیشه‌ای (Glass Cards)
+========================================= */
+.glass-card {
+  background: var(--surface-color);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+}
 
-/* دفتر اشتباهات */
-.mistake-list { list-style: none; padding: 0; }
-.mistake-list li { background: #16213e; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-right: 4px solid #e94560; }
+.glass-card h2, .glass-card h3 {
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subtitle {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+}
+
+/* =========================================
+   فرم‌ها و ورودی‌ها
+========================================= */
+label {
+  display: block;
+  margin-bottom: 15px;
+  color: var(--text-muted);
+  font-weight: bold;
+  font-size: 0.9rem;
+}
+
+input, select, textarea {
+  width: 100%;
+  padding: 12px 15px;
+  margin-top: 8px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  color: var(--text-main);
+  font-size: 1rem;
+  outline: none;
+}
+
+input:focus, select:focus, textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 10px var(--primary-glow);
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* =========================================
+   دکمه‌های نئونی
+========================================= */
+.btn-glow {
+  width: 100%;
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: #fff;
+  border: none;
+  padding: 14px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 4px 15px var(--primary-glow);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.btn-glow:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--primary-glow);
+  opacity: 0.9;
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #f43f5e, #be123c);
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.4);
+}
+
+/* =========================================
+   داشبورد و کارت‌های آمار
+========================================= */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.grid-stats .card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px 15px;
+  text-align: center;
+  font-weight: bold;
+  font-size: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  border-bottom: 3px solid var(--primary);
+}
+
+/* =========================================
+   لیست جلسات و تسک‌ها
+========================================= */
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 15px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  margin-bottom: 0;
+}
+
+.session-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+}
+
+.session-item input[type="checkbox"], 
+.session-item input[type="radio"] {
+  width: 22px;
+  height: 22px;
+  cursor: pointer;
+  accent-color: var(--primary);
+  margin: 0;
+}
+
+.session-info {
+  flex: 1;
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.session-info small {
+  display: block;
+  color: var(--text-muted);
+  margin-top: 5px;
+  font-size: 0.8rem;
+}
+
+/* =========================================
+   برنامه هفتگی
+========================================= */
+.grid-plan {
+  display: grid;
+  gap: 15px;
+}
+
+.grid-plan .card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 20px;
+}
+
+.grid-plan h4 {
+  color: var(--primary);
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 10px;
+}
+
+.grid-plan ul {
+  list-style: none;
+  padding: 0;
+}
+
+.grid-plan li {
+  padding: 10px 0;
+  border-bottom: 1px dashed var(--border-color);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* =========================================
+   آزمون ساز و چک باکس‌ها
+========================================= */
+.chapter-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.chapter-checkboxes label {
+  margin: 0;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.chapter-checkboxes input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+}
+
+/* سوالات آزمون */
+.timer-card {
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: var(--danger);
+  position: sticky;
+  top: 130px;
+  z-index: 10;
+  padding: 15px;
+}
+
+.question-card {
+  background: var(--surface-color);
+  border: 1px solid var(--border-color);
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.question-card h4 {
+  margin-bottom: 15px;
+  line-height: 1.6;
+  color: var(--primary);
+}
+
+.option-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 15px;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-bottom: 10px;
+  border: 1px solid transparent;
+}
+
+.option-label:hover {
+  border-color: var(--primary);
+  background: rgba(56, 189, 248, 0.1);
+}
+
+.option-label input:checked + span {
+  color: var(--primary);
+  font-weight: bold;
+}
+
+/* =========================================
+   فرم و لیست آزمون
+========================================= */
+.exam-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* =========================================
+   دفتر اشتباهات
+========================================= */
+.mistake-list {
+  list-style: none;
+  padding: 0;
+}
+
+.mistake-list li {
+  background: var(--surface-color);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  border-right: 4px solid var(--danger);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+/* =========================================
+   اسکرول‌بار سفارشی
+========================================= */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-color);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--secondary);
+}
+
+/* =========================================
+   ریسپانسیو برای موبایل
+========================================= */
+@media (max-width: 600px) {
+  header { padding: 10px; }
+  nav button { font-size: 0.8rem; padding: 6px 10px; }
+  nav button i { display: none; } /* مخفی کردن آیکون در موبایل برای صرفه جویی در فضا */
+  main { padding: 15px; }
+  .glass-card { padding: 15px; }
+  .grid-stats { grid-template-columns: 1fr 1fr; }
+  .chapter-checkboxes { grid-template-columns: 1fr 1fr; }
+  .timer-card { top: 90px; }
+}
