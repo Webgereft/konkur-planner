@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>برنامه‌ریز و آزمون‌ساز کنکور تجربی</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header>
+    <h1>📚 برنامه‌ریز کنکور تجربی</h1>
+    <nav>
+      <button onclick="showPage('setup', this)">تنظیمات</button>
+      <button onclick="showPage('dashboard', this)">داشبورد</button>
+      <button onclick="showPage('plan', this)">برنامه کل</button>
+      <button onclick="showPage('quiz', this)">🧪 آزمون‌ساز</button>
+      <button onclick="showPage('analytics', this)">تحلیل آزمون</button>
+      <button onclick="showPage('mistakes', this)">دفتر اشتباهات</button>
+    </nav>
+  </header>
+
+  <main>
+    <!-- ۱. تنظیمات اولیه -->
+    <section id="page-setup" class="page">
+      <h2>تنظیمات اولیه</h2>
+      <label>رشته تحصیلی:
+        <select id="field">
+          <option value="تجربی">علوم تجربی</option>
+        </select>
+      </label>
+      <label>چند روز تا کنکور مانده؟
+        <input type="number" id="daysLeft" min="1" value="180">
+      </label>
+      <label>هدف مطالعه روزانه (ساعت):
+        <input type="number" id="dailyHours" min="1" max="16" value="6">
+      </label>
+      <button onclick="saveSetup()">ذخیره و ساخت برنامه</button>
+    </section>
+
+    <!-- ۲. داشبورد -->
+    <section id="page-dashboard" class="page hidden">
+      <h2>پنل کاربری</h2>
+      <div id="summary" class="grid"></div>
+      <div class="panel-container">
+        <h3>📋 جلسات باقی‌مانده (با تیک زدن حذف می‌شوند)</h3>
+        <div id="todayTasks"></div>
+      </div>
+    </section>
+
+    <!-- ۳. برنامه کل -->
+    <section id="page-plan" class="page hidden">
+      <h2>کل برنامه</h2>
+      <div id="weeklyPlan" class="grid"></div>
+    </section>
+
+    <!-- ۴. آزمون‌ساز -->
+    <section id="page-quiz" class="page hidden">
+      <h2>🧪 آزمون‌ساز</h2>
+      <div class="card">
+        <label>درس:
+          <select id="quizSubject" onchange="loadChapters()">
+            <option value="زیست">زیست‌شناسی</option>
+            <option value="شیمی">شیمی</option>
+            <option value="فیزیک">فیزیک</option>
+            <option value="ریاضی">ریاضی</option>
+            <option value="زمین‌شناسی">زمین‌شناسی</option>
+          </select>
+        </label>
+        <label>نوع آزمون:
+          <select id="quizType" onchange="toggleQuizType()">
+            <option value="custom">فصل به فصل (یک پایه)</option>
+            <option value="comprehensive">جامع (همه پایه‌ها)</option>
+          </select>
+        </label>
+        <div id="customOptions">
+          <label>پایه:
+            <select id="quizGrade" onchange="loadChapters()">
+              <option>دهم</option><option>یازدهم</option><option>دوازدهم</option>
+            </select>
+          </label>
+          <div id="chapterList" class="grid"></div>
+        </div>
+        <label>تعداد سوال:
+          <input type="number" id="quizCount" value="10" min="1" max="50">
+        </label>
+        <button onclick="createQuiz()">شروع آزمون</button>
+      </div>
+
+      <div id="quizArea" class="hidden">
+        <div id="quizTimer" class="card timer-card">⏱️ زمان: 00:00</div>
+        <div id="quizQuestions"></div>
+        <button class="btn-submit" onclick="submitQuiz()">پایان آزمون و مشاهده نتیجه</button>
+      </div>
+    </section>
+
+    <!-- ۵. تحلیل آزمون -->
+    <section id="page-analytics" class="page hidden">
+      <h2>ثبت و تحلیل آزمون</h2>
+      <form id="examForm" class="card-form">
+        <input type="text" placeholder="نام درس" id="examSubject" required>
+        <input type="number" placeholder="درصد (0 تا 100)" id="examPercent" min="0" max="100" required>
+        <button type="submit">ثبت آزمون</button>
+      </form>
+      <div id="examList"></div>
+    </section>
+
+    <!-- ۶. دفتر اشتباهات -->
+    <section id="page-mistakes" class="page hidden">
+      <h2>دفتر اشتباهات</h2>
+      <textarea id="mistakeText" rows="3" placeholder="نکته یا اشتباه را بنویس..."></textarea>
+      <button onclick="addMistake()">افزودن</button>
+      <ul id="mistakeList" class="mistake-list"></ul>
+    </section>
+  </main>
+
+  <script src="js/storage.js"></script>
+  <script src="js/planner.js"></script>
+  <script src="js/analytics.js"></script>
+  <script src="js/quiz-engine.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
