@@ -17,7 +17,7 @@ function detectSubject(text) {
       if (text.includes(kw)) scores[subject]++;
     });
   }
-  let detected = "زیست"; // پیش‌فرض
+  let detected = "زیست"; 
   let maxScore = 0;
   for (const [sub, score] of Object.entries(scores)) {
     if (score > maxScore) {
@@ -36,29 +36,67 @@ async function extractFromPDF() {
     return alert("لطفا هر دو فایل سوالات و پاسخنامه را انتخاب کنید.");
   }
 
-  alert("در حال پردازش فایل‌ها... این کار ممکن است چند لحظه طول بکشد.");
+  alert("در حال پردازش فایل‌ها... لطفاً صبر کنید.");
 
   try {
-    // 1. خواندن فایل سوالات و پاسخنامه
     const qText = await readPDFText(qFile);
-    const aText = await readPDFText(aFile);
     
-    // 2. تشخیص خودکار درس
+    // تشخیص درس
     const detectedSubject = detectSubject(qText);
     
-    // 3. استخراج سوالات
-    alert("در حال استخراج سوالات و گزینه‌ها...");
-    const extractedQuestions = parseQuestions(qText, detectedSubject);
+    // استخراج سوالات با یک الگوی ساده‌تر
+    alert("متن PDF خوانده شد. در حال استخراج سوالات...");
+    
+    // این یک الگوی بسیار ساده است که دنبال "1-" یا "1)" می‌گردد
+    const questions = [];
+    const lines = qText.split('\n');
+    let currentQuestion = null;
 
-    if (extractedQuestions.length === 0) {
-        return alert("متاسفانه سوالی پیدا نشد. ممکن است ساختار PDF با الگوهای ما همخوانی نداشته باشد.");
+    lines.forEach(line => {
+        const trimmed = line.trim();
+        // اگر خط با شماره سوال شروع شده بود (مثلا 1- یا 1)
+        if (/^\d+[-.\s]/.test(trimmed) && trimmed.length > 10) {
+            if (currentQuestion) {
+                questions.push(currentQuestion);
+            }
+            // شروع سوال جدید
+            currentQuestion = {
+                q: trimmed,
+                options: ["گزینه 1", "گزینه 2", "گزینه 3", "گزینه 4"],
+                answer: 0
+            };
+        } 
+        // اگر خط با گزینه شروع شده بود (مثلا 1) یا 2))
+        else if (/^\d+\)/.test(trimmed) && currentQuestion) {
+            // اینجا می‌توانیم گزینه‌ها را جایگزین کنیم
+            // ولی چون الگوها دقیق نیستند، فعلاً گزینه‌ها را تغییر نمی‌دهیم
+        }
+    });
+    if (currentQuestion) questions.push(currentQuestion);
+
+    if (questions.length === 0) {
+        alert("سوالی پیدا نشد. ممکن است ساختار فایل PDF با الگوی ما سازگار نباشد.");
+        return;
     }
 
-    // 4. ذخیره در دیتابیس
-    await saveQuestionsToDB(extractedQuestions, detectedSubject);
-    
-    alert(`تعداد ${extractedQuestions.length} سوال از درس ${detectedSubject} با موفقیت استخراج و ذخیره شد!`);
-    
+    // ذخیره در دیتابیس
+    let savedCount = 0;
+    for (const q of questions) {
+        const { error } = await supabaseClient
+            .from('questions_bank')
+            .insert([{
+                subject: detectedSubject,
+                grade: 'نامشخص',
+                chapter: 'عمومی',
+                question_text: q.q,
+                options: q.options,
+                correct_answer: q.answer
+            }]);
+        if (!error) savedCount++;
+    }
+
+    alert(`تعداد ${savedCount} سوال از درس ${detectedSubject} با موفقیت در دیتابیس ذخیره شد!`);
+
   } catch (error) {
     console.error("خطا:", error);
     alert("خطا در خواندن فایل PDF: " + error.message);
@@ -86,44 +124,4 @@ async function readPDFText(file) {
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
-}
-
-// الگوریتم ساده استخراج سوالات
-function parseQuestions(text, subject) {
-    const questions = [];
-    // این الگو دنبال شماره سوال (مثل 1- یا 1) ) و سپس متن می‌گردد
-    // این یک الگوی ساده است و ممکن است نیاز به تغییرات داشته باشد
-    const questionRegex = /(\d+)[-\.)\s]+(.*?)(?=\d+[-\.)\s]+|$)/gs;
-    
-    let match;
-    while ((match = questionRegex.exec(text)) !== null) {
-        const qTextBlock = match[2].trim();
-        // در اینجا باید گزینه‌ها را هم از داخل qTextBlock جدا کنیم
-        // برای سادگی، ما فعلاً فقط متن سوال را ذخیره می‌کنیم و گزینه‌ها را خالی می‌گذاریم
-        if (qTextBlock.length > 20) { // فیلتر کردن متن‌های خیلی کوتاه
-            questions.push({
-                q: qTextBlock.substring(0, 500), // محدود کردن طول متن سوال
-                options: ["گزینه 1", "گزینه 2", "گزینه 3", "گزینه 4"], // به صورت موقت
-                answer: 0 // به صورت موقت
-            });
-        }
-    }
-    return questions;
-}
-
-async function saveQuestionsToDB(questions, subject) {
-    // ذخیره در دیتابیس Supabase
-    for (const q of questions) {
-        const { error } = await supabaseClient
-            .from('questions_bank')
-            .insert([{
-                subject: subject,
-                grade: 'نامشخص', // در نسخه فعلی پایه را نمی‌دانیم
-                chapter: 'عمومی',
-                question_text: q.q,
-                options: q.options,
-                correct_answer: q.answer
-            }]);
-        if (error) console.error("خطا در ذخیره سوال:", error);
-    }
 }
