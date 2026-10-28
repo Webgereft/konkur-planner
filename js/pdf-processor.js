@@ -2,8 +2,8 @@
 // کد کامل پردازش PDF و اتصال به هوش مصنوعی گوگل
 // ==========================================
 
-// کلید API شما (همان کلیدی که از گوگل گرفتید)
-const GEMINI_API_KEY = 'AQ.Ab8RN6JG2AUeGNUvO1lNJ1n8B9FM7pnPuurVSS_8nAnuGNl0YA';
+// کلید API شما
+const GEMINI_API_KEY = 'AQ.Ab8RN6JX1YfgakTM_GRhBR5FEtNohJ3CGfttFPYWMCqd0j_S_A';
 
 // تنظیمات pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -88,9 +88,9 @@ async function readPDFText(file) {
   });
 }
 
-// تابع هوش مصنوعی (با استفاده از کلید API)
+// تابع هوش مصنوعی
 async function extractQuestionsWithAI(rawText) {
-  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+  const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
 
   const prompt = `
     شما یک دستیار هوشمند هستید. متن زیر از یک فایل PDF کنکور استخراج شده است. 
@@ -112,7 +112,10 @@ async function extractQuestionsWithAI(rawText) {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'X-goog-api-key': GEMINI_API_KEY // استفاده از هدر جدید
+      },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -122,6 +125,8 @@ async function extractQuestionsWithAI(rawText) {
     });
 
     if (!response.ok) {
+      const errorData = await response.json();
+      console.error("جزئیات خطای گوگل:", errorData);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
