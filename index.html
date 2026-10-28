@@ -5,12 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>کنکوریار | برنامه‌ریز هوشمند</title>
   
+  <!-- فونت و آیکون‌ها -->
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- استایل اصلی -->
   <link rel="stylesheet" href="css/style.css">
   
   <!-- کتابخانه خواندن PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  
+  <!-- کتابخانه Supabase (باید قبل از بقیه اسکریپت‌ها باشد) -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
   <header>
@@ -29,7 +35,7 @@
   </header>
 
   <main>
-    <!-- تنظیمات -->
+    <!-- ================= صفحه تنظیمات ================= -->
     <section id="page-setup" class="page">
       <div class="card-main">
         <h2><i class="fa-solid fa-sliders"></i> تنظیمات اولیه</h2>
@@ -52,7 +58,7 @@
         </button>
       </div>
 
-      <!-- بخش آپلود PDF (جدید) -->
+      <!-- بخش آپلود PDF -->
       <div class="card-main" style="border-color: #38bdf8; margin-top: 20px;">
         <h3><i class="fa-solid fa-file-pdf"></i> آپلود فایل PDF سوالات</h3>
         <p class="subtitle">فایل دفترچه سوالات و پاسخنامه را آپلود کنید تا سوالات به صورت خودکار استخراج شوند.</p>
@@ -68,14 +74,18 @@
       </div>
     </section>
 
-    <!-- داشبورد -->
+    <!-- ================= داشبورد ================= -->
     <section id="page-dashboard" class="page hidden">
       <h2 class="page-title">داشبورد کاربری</h2>
+      
+      <!-- روزشمار کنکور -->
       <div class="countdown-container">
         <h3 style="text-align:center; margin-bottom:15px; font-size:1rem; color:var(--text-muted);">⏳ زمان باقی‌مانده تا کنکور</h3>
         <div id="countdown-timer" class="countdown-timer"></div>
       </div>
+
       <div id="summary" class="stats-grid"></div>
+      
       <div class="card-main">
         <h3><i class="fa-solid fa-list-check"></i> جلسات باقی‌مانده</h3>
         <p class="subtitle">با تیک زدن هر مورد، از لیست حذف و در آمار ثبت می‌شود.</p>
@@ -83,9 +93,11 @@
       </div>
     </section>
 
-    <!-- برنامه کل -->
+    <!-- ================= برنامه کل ================= -->
     <section id="page-plan" class="page hidden">
       <h2 class="page-title">برنامه هفتگی</h2>
+      
+      <!-- فرم افزودن برنامه دستی -->
       <div class="card-main" style="border-color: #38bdf8;">
         <h3><i class="fa-solid fa-plus"></i> افزودن برنامه دستی</h3>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
@@ -102,12 +114,14 @@
         <div class="input-group"><label>مبحث/فصل:</label><input type="text" id="manualChapter" placeholder="مثلا: مرور فصل 1"></div>
         <button class="btn-primary" onclick="addManualSession()"><i class="fa-solid fa-check"></i> ثبت در برنامه</button>
       </div>
+      
       <div id="weeklyPlan" class="plan-grid"></div>
     </section>
 
-    <!-- آزمون ساز -->
+    <!-- ================= آزمون ساز ================= -->
     <section id="page-quiz" class="page hidden">
       <h2 class="page-title">آزمون‌ساز هوشمند</h2>
+      
       <div id="quizSetupArea" class="card-main">
         <div class="input-group">
           <label>درس:</label>
@@ -136,6 +150,8 @@
         <div class="input-group"><label>تعداد سوال:</label><input type="number" id="quizCount" value="10" min="1" max="50"></div>
         <button class="btn-primary" onclick="createQuiz()"><i class="fa-solid fa-play"></i> شروع آزمون</button>
       </div>
+
+      <!-- بخش اجرای آزمون (در ابتدا مخفی است) -->
       <div id="quizArea" class="hidden">
         <div id="quizTimer" class="timer-card">⏱️ زمان: 00:00</div>
         <div id="quizQuestions"></div>
@@ -143,7 +159,7 @@
       </div>
     </section>
 
-    <!-- کارنامه -->
+    <!-- ================= کارنامه ================= -->
     <section id="page-exam-result" class="page hidden">
       <h2 class="page-title">کارنامه آزمون</h2>
       <div class="result-card">
@@ -157,28 +173,31 @@
           <div class="res-box red-box"><span>غلط</span><strong id="res-wrong">0</strong></div>
           <div class="res-box blue-box"><span>تراز تخمینی</span><strong id="res-traz">0</strong></div>
         </div>
-        <button class="btn-primary" onclick="showPage('quiz', document.querySelector('nav button[data-target=\'quiz\']'))" style="margin-top:30px;"><i class="fa-solid fa-rotate-right"></i> بازگشت</button>
+        <button class="btn-primary" onclick="showPage('quiz', document.querySelector('nav button[data-target=\'quiz\']'))" style="margin-top:30px;">
+          <i class="fa-solid fa-rotate-right"></i> بازگشت به آزمون‌ساز
+        </button>
       </div>
     </section>
 
-    <!-- تحلیل -->
+    <!-- ================= تحلیل آزمون ================= -->
     <section id="page-analytics" class="page hidden">
       <h2 class="page-title">تاریخچه آزمون‌ها</h2>
       <div id="examList" class="session-list"></div>
     </section>
 
-    <!-- اشتباهات -->
+    <!-- ================= دفتر اشتباهات ================= -->
     <section id="page-mistakes" class="page hidden">
       <h2 class="page-title">دفتر اشتباهات</h2>
       <div class="card-main">
-        <div class="input-group"><textarea id="mistakeText" rows="3" placeholder="نکته مهم..."></textarea></div>
+        <div class="input-group"><textarea id="mistakeText" rows="3" placeholder="نکته مهم را بنویسید..."></textarea></div>
         <button class="btn-primary" onclick="addMistake()">افزودن</button>
       </div>
       <ul id="mistakeList" class="mistake-list"></ul>
     </section>
   </main>
 
-  <!-- اسکریپت‌ها -->
+  <!-- ================= اسکریپت‌ها (ترتیب مهم است) ================= -->
+  <script src="js/supabase-client.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/planner.js"></script>
   <script src="js/pdf-processor.js"></script>
