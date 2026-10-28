@@ -1,3 +1,10 @@
+// ==========================================
+// کد کامل پردازش PDF و اتصال به هوش مصنوعی گوگل
+// ==========================================
+
+// کلید API شما (همان کلیدی که از گوگل گرفتید)
+const GEMINI_API_KEY = 'AQ.Ab8RN6JG2AUeGNUvO1lNJ1n8B9FM7pnPuurVSS_8nAnuGNl0YA';
+
 // تنظیمات pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
@@ -36,7 +43,7 @@ async function extractFromPDF() {
         const { error } = await supabaseClient
             .from('questions_bank')
             .insert([{
-                subject: 'نامشخص', // می‌توانید از کاربر بپرسید یا از AI بخواهید تشخیص دهد
+                subject: 'نامشخص', 
                 grade: 'نامشخص',
                 chapter: 'عمومی',
                 question_text: q.q,
@@ -57,6 +64,7 @@ async function extractFromPDF() {
   }
 }
 
+// تابع خواندن فایل PDF
 async function readPDFText(file) {
   const reader = new FileReader();
   return new Promise((resolve, reject) => {
@@ -78,4 +86,51 @@ async function readPDFText(file) {
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
+}
+
+// تابع هوش مصنوعی (با استفاده از کلید API)
+async function extractQuestionsWithAI(rawText) {
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
+
+  const prompt = `
+    شما یک دستیار هوشمند هستید. متن زیر از یک فایل PDF کنکور استخراج شده است. 
+    لطفاً سوالات را به صورت دقیق پیدا کن و به فرمت JSON زیر برگردان:
+    [
+      {
+        "q": "متن کامل سوال",
+        "options": ["گزینه 1", "گزینه 2", "گزینه 3", "گزینه 4"],
+        "answer": 0
+      }
+    ]
+    نکته: فیلد answer باید شماره گزینه صحیح باشد (0 برای گزینه اول، 1 برای گزینه دوم و...).
+    اگر پاسخ صحیح در متن مشخص نیست، آن را 0 بگذار.
+    
+    متن PDF:
+    ${rawText.substring(0, 20000)} 
+  `;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          responseMimeType: "application/json"
+        }
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+    let aiText = data.candidates[0].content.parts[0].text;
+    return JSON.parse(aiText);
+
+  } catch (error) {
+    console.error("خطا در ارتباط با هوش مصنوعی:", error);
+    throw new Error("خطا در ارتباط با هوش مصنوعی. لطفاً بررسی کنید که فیلترشکن روشن است و کلید API صحیح است.");
+  }
 }
