@@ -1,9 +1,14 @@
-let CONFIG = DB.get('config', null);
-let PLAN = DB.get('plan', []);
-let EXAMS = DB.get('exams', []);
-let MISTAKES = DB.get('mistakes', []);
+let CONFIG = null;
+let PLAN = [];
+let EXAMS = [];
+let MISTAKES = [];
 
-function init() {
+async function init() {
+  CONFIG = await DB.get('config', null);
+  PLAN = await DB.get('plan', []);
+  EXAMS = await DB.get('exams', []);
+  MISTAKES = await DB.get('mistakes', []);
+
   if (!CONFIG) {
     showPage('setup', document.querySelector('nav button[data-target="setup"]'));
   } else {
@@ -56,46 +61,49 @@ function startCountdown() {
   }, 1000);
 }
 
-function clearPlan() {
+async function clearPlan() {
   if(confirm("آیا مطمئن هستید؟ تمام برنامه‌ها پاک می‌شوند.")) {
     PLAN = [];
-    DB.set('plan', PLAN);
+    await DB.set('plan', PLAN); 
     renderPlan();
     renderDashboard();
   }
 }
 
-function saveSetup() {
+async function saveSetup() {
   const daysLeft = +document.getElementById('daysLeft').value;
   const dailyHours = +document.getElementById('dailyHours').value;
   if (!daysLeft || !dailyHours) return alert("مقادیر را وارد کنید");
+  
   CONFIG = { field: 'تجربی', daysLeft, dailyHours };
-  DB.set('config', CONFIG);
+  await DB.set('config', CONFIG); 
+  
   if (typeof generatePlan === 'function') {
     PLAN = generatePlan(CONFIG);
-    DB.set('plan', PLAN);
+    await DB.set('plan', PLAN); 
     showPage('dashboard', document.querySelector('nav button[data-target="dashboard"]'));
   } else {
     alert("خطا در ساخت برنامه.");
   }
 }
 
-function addManualSession() {
+async function addManualSession() {
   const day = +document.getElementById('manualDay').value;
   const subject = document.getElementById('manualSubject').value;
   const chapter = document.getElementById('manualChapter').value.trim();
   const minutes = +document.getElementById('manualMinutes').value;
   if (!day || !chapter || !minutes) return alert("مقادیر را کامل کنید.");
+  
   PLAN.push({ id: 'manual_' + Date.now(), day, subject, chapter, minutes, type: 'manual', done: false });
-  DB.set('plan', PLAN);
+  await DB.set('plan', PLAN); 
   document.getElementById('manualChapter').value = '';
   renderPlan();
 }
 
-function deleteSession(id) {
+async function deleteSession(id) {
   if(confirm("حذف شود؟")) {
     PLAN = PLAN.filter(s => s.id !== id);
-    DB.set('plan', PLAN);
+    await DB.set('plan', PLAN); 
     renderPlan();
     renderDashboard();
   }
@@ -130,9 +138,13 @@ function renderDashboard() {
   `).join('');
 }
 
-function toggleSession(id) {
+async function toggleSession(id) {
   const s = PLAN.find(x => x.id === id);
-  if (s) { s.done = !s.done; DB.set('plan', PLAN); renderDashboard(); }
+  if (s) { 
+    s.done = !s.done; 
+    await DB.set('plan', PLAN); 
+    renderDashboard(); 
+  }
 }
 
 function renderPlan() {
@@ -169,7 +181,6 @@ function toggleQuizType() {
 function loadChapters() {
   const subject = document.getElementById('quizSubject').value;
   const grade = document.getElementById('quizGrade').value;
-  // از QUESTION_BANK که در quiz-engine.js پر شده استفاده میکنیم
   const chapters = (typeof QUESTION_BANK !== 'undefined' && QUESTION_BANK[subject] && QUESTION_BANK[subject][grade]) ? QUESTION_BANK[subject][grade] : {};
   
   const list = document.getElementById('chapterList');
@@ -202,11 +213,11 @@ function renderExams() {
     </div>`).join('');
 }
 
-function addMistake() {
+async function addMistake() {
   const txt = document.getElementById('mistakeText').value.trim();
   if (!txt) return;
   MISTAKES.push({ text: txt });
-  DB.set('mistakes', MISTAKES);
+  await DB.set('mistakes', MISTAKES); 
   document.getElementById('mistakeText').value = '';
   renderMistakes();
 }
