@@ -1,6 +1,38 @@
 // تنظیمات pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
+// کلمات کلیدی برای تشخیص درس
+const SUBJECT_KEYWORDS = {
+  "زیست": ["زیست", "یاخته", "دنا", "رنای", "پروتئین", "ژن", "کروموزوم", "جاندار", "گیاه", "جانور"],
+  "فیزیک": ["فیزیک", "شتاب", "سرعت", "نیرو", "انرژی", "مدار", "الکترون", "موج", "نوسان", "مغناطیس"],
+  "شیمی": ["شیمی", "مول", "واکنش", "اتم", "الکترون", "پیوند", "محلول", "اسید", "باز", "ترکیب"],
+  "ریاضی": ["ریاضی", "تابع", "معادله", "مثلث", "حد", "مشتق", "انتگرال", "احتمال", "هندسه", "دنباله"],
+  "زمین‌شناسی": ["زمین", "سنگ", "کانی", "آتشفشان", "گسل", "زلزله", "فسیل", "رسوب", "خاک", "آبخوان"]
+};
+
+function detectSubject(text) {
+  let scores = { "زیست": 0, "فیزیک": 0, "شیمی": 0, "ریاضی": 0, "زمین‌شناسی": 0 };
+  
+  // برای هر درس، تعداد کلمات کلیدی موجود در متن را می‌شماریم
+  for (const [subject, keywords] of Object.entries(SUBJECT_KEYWORDS)) {
+    keywords.forEach(kw => {
+      if (text.includes(kw)) scores[subject]++;
+    });
+  }
+  
+  // درسی که بیشترین کلمه کلیدی را دارد انتخاب می‌شود
+  let detected = "نامشخص";
+  let maxScore = 0;
+  for (const [sub, score] of Object.entries(scores)) {
+    if (score > maxScore) {
+      maxScore = score;
+      detected = sub;
+    }
+  }
+  
+  return detected;
+}
+
 async function extractFromPDF() {
   const qFile = document.getElementById('pdfQuestions').files[0];
   const aFile = document.getElementById('pdfAnswers').files[0];
@@ -14,18 +46,18 @@ async function extractFromPDF() {
   try {
     // 1. خواندن فایل سوالات
     const qText = await readPDFText(qFile);
-    // 2. خواندن فایل پاسخنامه
-    const aText = await readPDFText(aFile);
     
-    // 3. پردازش و استخراج (این بخش نیاز به هوشمندی دارد)
-    // چون متن PDF به هم ریخته است، ما فقط کلمات کلیدی را پیدا می‌کنیم
-    // برای شروع، ما فقط سوالات و گزینه‌ها را جدا می‌کنیم
+    // 2. تشخیص خودکار درس
+    const detectedSubject = detectSubject(qText);
+    alert(`درس تشخیص داده شده: ${detectedSubject}`);
+
+    // 3. ذخیره متن در حافظه (برای مرحله بعد که سوالات را استخراج می‌کنیم)
+    localStorage.setItem('raw_pdf_text', qText);
     
-    // (این بخش از کد به صورت ساده‌سازی شده نوشته شده است. برای استخراج دقیق، نیاز به Regex پیچیده است)
-    console.log("متن سوالات:", qText.substring(0, 200));
-    console.log("متن پاسخ‌ها:", aText.substring(0, 200));
+    // برای شروع، ما فقط متن را ذخیره می‌کنیم. در گام‌های بعدی، با کدهای پیچیده‌تر سوالات را از دل متن بیرون می‌کشیم
+    console.log("متن سوالات:", qText.substring(0, 500) + "...");
     
-    alert("متن PDF با موفقیت خوانده شد. حالا باید کدهای پردازش را تکمیل کنیم.");
+    alert("متن PDF خوانده شد و درس تشخیص داده شد. حالا باید کدهای جداکننده سوالات را پیاده‌سازی کنیم.");
     
   } catch (error) {
     console.error("خطا:", error);
