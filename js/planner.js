@@ -1,6 +1,3 @@
-// ==========================================
-// دیتابیس دروس و ضرایب (برای رشته تجربی)
-// ==========================================
 const PLANNER_DB = {
   "تجربی": {
     "زیست": { "coeff": 12, "chapters": { "دهم": 7, "یازدهم": 9, "دوازدهم": 8 } },
@@ -17,23 +14,18 @@ function generatePlan(config) {
   if (!subjects) return [];
 
   let topics = [];
-
-  // 1. استخراج مباحث و محاسبه وزن هوشمند
   for (const [subject, info] of Object.entries(subjects)) {
     for (const [grade, chapterCount] of Object.entries(info.chapters)) {
       for (let i = 1; i <= chapterCount; i++) {
         const chapterName = `${grade} - فصل ${i}`;
-        // وزن = ضریب درس * اهمیت فصل (فرض میکنیم فصول اول وزن بیشتری دارند)
         const weight = info.coeff * (1 + (chapterCount - i) * 0.1); 
         topics.push({ subject, grade, chapter: chapterName, weight });
       }
     }
   }
 
-  // 2. مرتب‌سازی مباحث بر اساس وزن (سخت‌ترین و مهم‌ترین مباحث اول)
   topics.sort((a, b) => b.weight - a.weight);
 
-  // 3. محاسبه ظرفیت زمانی
   const totalMinutes = daysLeft * dailyHours * 60;
   const totalWeight = topics.reduce((sum, t) => sum + t.weight, 0);
   
@@ -43,24 +35,19 @@ function generatePlan(config) {
   const dayLimit = dailyHours * 60;
   let sessionId = 1;
 
-  // 4. توزیع مباحث در روزها و جلسات
   topics.forEach(topic => {
-    // سهم این مبحث از کل زمان
     const share = (topic.weight / totalWeight) * totalMinutes;
-    let remainingMinutes = Math.max(45, Math.round(share)); // حداقل 45 دقیقه
+    let remainingMinutes = Math.max(45, Math.round(share));
 
-    // تقسیم به جلسات حداکثر 90 دقیقه‌ای (پومودورو)
     while (remainingMinutes > 0) {
-      const sessionTime = Math.min(remainingMinutes, 90); // حداکثر 90 دقیقه در یک جلسه
+      const sessionTime = Math.min(remainingMinutes, 90);
       
-      // اگر امروز جا نداریم، برو روز بعد
       if (minutesToday + sessionTime > dayLimit) {
         dayIndex++;
         minutesToday = 0;
-        if (dayIndex > daysLeft) break; // اگر از روزهای باقی‌مانده گذشت
+        if (dayIndex > daysLeft) break;
       }
 
-      // اضافه کردن جلسه مطالعه
       plan.push({
         id: `s_${sessionId++}`,
         day: dayIndex,
@@ -73,7 +60,6 @@ function generatePlan(config) {
       minutesToday += sessionTime;
       remainingMinutes -= sessionTime;
 
-      // 5. اضافه کردن جلسات مرور هوشمند (بعد از 1 و 3 و 7 روز)
       [1, 3, 7].forEach(gap => {
         const reviewDay = dayIndex + gap;
         if (reviewDay <= daysLeft) {
@@ -82,7 +68,7 @@ function generatePlan(config) {
             day: reviewDay,
             subject: topic.subject,
             chapter: topic.chapter,
-            minutes: 15, // زمان مرور
+            minutes: 15,
             type: 'review',
             done: false
           });
@@ -91,7 +77,6 @@ function generatePlan(config) {
     }
   });
 
-  // مرتب‌سازی نهایی بر اساس روز
   plan.sort((a, b) => a.day - b.day || a.type.localeCompare(b.type));
   return plan;
 }
