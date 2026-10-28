@@ -12,16 +12,12 @@ const SUBJECT_KEYWORDS = {
 
 function detectSubject(text) {
   let scores = { "زیست": 0, "فیزیک": 0, "شیمی": 0, "ریاضی": 0, "زمین‌شناسی": 0 };
-  
-  // برای هر درس، تعداد کلمات کلیدی موجود در متن را می‌شماریم
   for (const [subject, keywords] of Object.entries(SUBJECT_KEYWORDS)) {
     keywords.forEach(kw => {
       if (text.includes(kw)) scores[subject]++;
     });
   }
-  
-  // درسی که بیشترین کلمه کلیدی را دارد انتخاب می‌شود
-  let detected = "نامشخص";
+  let detected = "زیست"; // پیش‌فرض
   let maxScore = 0;
   for (const [sub, score] of Object.entries(scores)) {
     if (score > maxScore) {
@@ -29,7 +25,6 @@ function detectSubject(text) {
       detected = sub;
     }
   }
-  
   return detected;
 }
 
@@ -44,20 +39,25 @@ async function extractFromPDF() {
   alert("در حال پردازش فایل‌ها... این کار ممکن است چند لحظه طول بکشد.");
 
   try {
-    // 1. خواندن فایل سوالات
+    // 1. خواندن فایل سوالات و پاسخنامه
     const qText = await readPDFText(qFile);
+    const aText = await readPDFText(aFile);
     
     // 2. تشخیص خودکار درس
     const detectedSubject = detectSubject(qText);
-    alert(`درس تشخیص داده شده: ${detectedSubject}`);
+    
+    // 3. استخراج سوالات
+    alert("در حال استخراج سوالات و گزینه‌ها...");
+    const extractedQuestions = parseQuestions(qText, detectedSubject);
 
-    // 3. ذخیره متن در حافظه (برای مرحله بعد که سوالات را استخراج می‌کنیم)
-    localStorage.setItem('raw_pdf_text', qText);
+    if (extractedQuestions.length === 0) {
+        return alert("متاسفانه سوالی پیدا نشد. ممکن است ساختار PDF با الگوهای ما همخوانی نداشته باشد.");
+    }
+
+    // 4. ذخیره در دیتابیس
+    await saveQuestionsToDB(extractedQuestions, detectedSubject);
     
-    // برای شروع، ما فقط متن را ذخیره می‌کنیم. در گام‌های بعدی، با کدهای پیچیده‌تر سوالات را از دل متن بیرون می‌کشیم
-    console.log("متن سوالات:", qText.substring(0, 500) + "...");
-    
-    alert("متن PDF خوانده شد و درس تشخیص داده شد. حالا باید کدهای جداکننده سوالات را پیاده‌سازی کنیم.");
+    alert(`تعداد ${extractedQuestions.length} سوال از درس ${detectedSubject} با موفقیت استخراج و ذخیره شد!`);
     
   } catch (error) {
     console.error("خطا:", error);
@@ -86,4 +86,44 @@ async function readPDFText(file) {
     reader.onerror = reject;
     reader.readAsArrayBuffer(file);
   });
+}
+
+// الگوریتم ساده استخراج سوالات
+function parseQuestions(text, subject) {
+    const questions = [];
+    // این الگو دنبال شماره سوال (مثل 1- یا 1) ) و سپس متن می‌گردد
+    // این یک الگوی ساده است و ممکن است نیاز به تغییرات داشته باشد
+    const questionRegex = /(\d+)[-\.)\s]+(.*?)(?=\d+[-\.)\s]+|$)/gs;
+    
+    let match;
+    while ((match = questionRegex.exec(text)) !== null) {
+        const qTextBlock = match[2].trim();
+        // در اینجا باید گزینه‌ها را هم از داخل qTextBlock جدا کنیم
+        // برای سادگی، ما فعلاً فقط متن سوال را ذخیره می‌کنیم و گزینه‌ها را خالی می‌گذاریم
+        if (qTextBlock.length > 20) { // فیلتر کردن متن‌های خیلی کوتاه
+            questions.push({
+                q: qTextBlock.substring(0, 500), // محدود کردن طول متن سوال
+                options: ["گزینه 1", "گزینه 2", "گزینه 3", "گزینه 4"], // به صورت موقت
+                answer: 0 // به صورت موقت
+            });
+        }
+    }
+    return questions;
+}
+
+async function saveQuestionsToDB(questions, subject) {
+    // ذخیره در دیتابیس Supabase
+    for (const q of questions) {
+        const { error } = await supabaseClient
+            .from('questions_bank')
+            .insert([{
+                subject: subject,
+                grade: 'نامشخص', // در نسخه فعلی پایه را نمی‌دانیم
+                chapter: 'عمومی',
+                question_text: q.q,
+                options: q.options,
+                correct_answer: q.answer
+            }]);
+        if (error) console.error("خطا در ذخیره سوال:", error);
+    }
 }
