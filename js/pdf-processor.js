@@ -1,9 +1,9 @@
 // ==========================================
-// کد کامل پردازش PDF و اتصال به هوش مصنوعی گوگل
+// کد کامل پردازش PDF و اتصال به Worker (واسط گوگل)
 // ==========================================
 
-// کلید API شما
-const GEMINI_API_KEY = 'AQ.Ab8RN6JX1YfgakTM_GRhBR5FEtNohJ3CGfttFPYWMCqd0j_S_A';
+// آدرس Worker خود را اینجا وارد کنید
+const WORKER_URL = 'https://konkursaz.webgereft.workers.dev';
 
 // تنظیمات pdf.js
 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
@@ -27,7 +27,7 @@ async function extractFromPDF() {
         throw new Error("متن استخراج شده از PDF بسیار کوتاه است. ممکن است فایل تصویری باشد.");
     }
 
-    // 2. ارسال متن به هوش مصنوعی
+    // 2. ارسال متن به Worker
     btn.innerText = "هوش مصنوعی در حال استخراج سوالات است...";
     const extractedQuestions = await extractQuestionsWithAI(rawText);
 
@@ -53,7 +53,7 @@ async function extractFromPDF() {
         if (!error) savedCount++;
     }
 
-    alert(`تعداد ${savedCount} سوال با موفقیت در دیتابیس ذخیره شد! حالا می‌توانید فیلترشکن را خاموش کنید.`);
+    alert(`تعداد ${savedCount} سوال با موفقیت در دیتابیس ذخیره شد!`);
     
   } catch (error) {
     console.error("خطا:", error);
@@ -88,9 +88,9 @@ async function readPDFText(file) {
   });
 }
 
-// تابع هوش مصنوعی
+// تابع هوش مصنوعی (اتصال به Worker)
 async function extractQuestionsWithAI(rawText) {
-  const API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent';
+  const API_URL = WORKER_URL; // <--- اتصال به Worker
 
   const prompt = `
     شما یک دستیار هوشمند هستید. متن زیر از یک فایل PDF کنکور استخراج شده است. 
@@ -112,10 +112,7 @@ async function extractQuestionsWithAI(rawText) {
   try {
     const response = await fetch(API_URL, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-goog-api-key': GEMINI_API_KEY // استفاده از هدر جدید
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
@@ -126,7 +123,7 @@ async function extractQuestionsWithAI(rawText) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error("جزئیات خطای گوگل:", errorData);
+      console.error("جزئیات خطای Worker:", errorData);
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
@@ -136,6 +133,6 @@ async function extractQuestionsWithAI(rawText) {
 
   } catch (error) {
     console.error("خطا در ارتباط با هوش مصنوعی:", error);
-    throw new Error("خطا در ارتباط با هوش مصنوعی. لطفاً بررسی کنید که فیلترشکن روشن است و کلید API صحیح است.");
+    throw new Error("خطا در ارتباط با هوش مصنوعی. لطفاً بررسی کنید که Worker به درستی تنظیم شده است.");
   }
 }
