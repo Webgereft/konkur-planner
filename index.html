@@ -1,207 +1,823 @@
+
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>کنکوریار | برنامه‌ریز هوشمند</title>
-  
-  <!-- فونت و آیکون‌ها -->
-  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet" type="text/css" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
-  <!-- استایل اصلی -->
+
+  <meta name="theme-color" content="#7654db">
+  <meta name="description" content="کنکوریار؛ برنامه‌ریز هوشمند مطالعه و آزمون کنکور تجربی ۱۴۰۶">
+
+  <title>کنکوریار | همراه هوشمند کنکور ۱۴۰۶</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="css/style.css">
-  
-  <!-- کتابخانه خواندن PDF -->
+
+  <link rel="stylesheet"
+    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-  
-  <!-- کتابخانه Supabase (باید قبل از بقیه اسکریپت‌ها باشد) -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    .app-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      padding: 12px 20px;
+      background: rgba(255,255,255,.72);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255,255,255,.8);
+    }
+
+    .header-inner {
+      max-width: 1150px;
+      margin: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.25rem;
+      font-weight: 900;
+      color: var(--primary-dark);
+      white-space: nowrap;
+    }
+
+    .brand-icon {
+      width: 45px;
+      height: 45px;
+      display: grid;
+      place-items: center;
+      color: white;
+      border-radius: 15px;
+      background: linear-gradient(135deg,#7654db,#ad8cf5);
+      box-shadow: 0 6px 15px rgba(118,84,219,.25);
+    }
+
+    .header-nav {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .header-nav button {
+      padding: 9px 13px;
+      background: transparent;
+      color: var(--muted);
+      box-shadow: none;
+      border-radius: 12px;
+      font-size: .9rem;
+    }
+
+    .header-nav button.active,
+    .header-nav button:hover {
+      background: rgba(118,84,219,.12);
+      color: var(--primary-dark);
+      transform: none;
+      box-shadow: none;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 32px 15px 24px;
+    }
+
+    .hero-tag {
+      display: inline-block;
+      padding: 6px 15px;
+      border-radius: 30px;
+      color: var(--primary-dark);
+      background: rgba(118,84,219,.12);
+      font-size: .85rem;
+      margin-bottom: 12px;
+    }
+
+    .hero h1 {
+      margin: 8px 0;
+      font-weight: 900;
+    }
+
+    .hero p {
+      color: var(--muted);
+      margin: 8px 0;
+    }
+
+    .page-section {
+      display: none;
+      max-width: 1100px;
+      width: calc(100% - 30px);
+      margin: 25px auto 60px;
+    }
+
+    .page-section.active {
+      display: block;
+      animation: pageEnter .3s ease;
+    }
+
+    @keyframes pageEnter {
+      from {opacity:0;transform:translateY(8px)}
+      to {opacity:1;transform:translateY(0)}
+    }
+
+    .section-heading {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 25px 0 18px;
+    }
+
+    .section-heading i {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      background: rgba(118,84,219,.12);
+      color: var(--primary);
+    }
+
+    .section-heading h2 {
+      margin: 0;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+      gap: 10px 18px;
+    }
+
+    .form-group { min-width: 0; }
+
+    .welcome-card {
+      overflow: hidden;
+      position: relative;
+      padding: 25px;
+      border-radius: 25px;
+      background: linear-gradient(120deg,rgba(118,84,219,.14),rgba(32,191,174,.12));
+      border: 1px solid rgba(255,255,255,.8);
+      margin-bottom: 25px;
+    }
+
+    .welcome-card h2 { margin-top: 0; }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(230px,1fr));
+      gap: 16px;
+    }
+
+    .dashboard-card {
+      padding: 20px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.7);
+      border: 1px solid rgba(255,255,255,.85);
+      box-shadow: 0 10px 25px rgba(82,65,140,.07);
+    }
+
+    .dashboard-card h3 {
+      margin-top: 0;
+      font-size: 1rem;
+    }
+
+    .dashboard-card i {
+      color: var(--primary);
+      margin-left: 7px;
+    }
+
+    .file-upload {
+      padding: 20px;
+      border: 2px dashed rgba(118,84,219,.35);
+      border-radius: 18px;
+      background: rgba(255,255,255,.45);
+      margin: 15px 0;
+    }
+
+    .file-upload input { background: transparent; }
+
+    .action-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .empty-state {
+      padding: 25px;
+      text-align: center;
+      color: var(--muted);
+      border-radius: 17px;
+      background: rgba(255,255,255,.4);
+    }
+
+    .empty-state i {
+      display: block;
+      font-size: 2rem;
+      color: #b8a6ec;
+      margin-bottom: 10px;
+    }
+
+    .quiz-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      padding: 15px;
+      border-radius: 16px;
+      background: rgba(118,84,219,.08);
+      margin-bottom: 15px;
+    }
+
+    .result-circle {
+      width: 150px;
+      height: 150px;
+      display: grid;
+      place-items: center;
+      margin: 15px auto;
+      border-radius: 50%;
+      background: conic-gradient(#20bfae 0deg,rgba(118,84,219,.12) 0deg);
+      position: relative;
+    }
+
+    .result-circle::before {
+      content: "";
+      position: absolute;
+      inset: 12px;
+      background: #f7f5ff;
+      border-radius: 50%;
+    }
+
+    .result-circle span {
+      position: relative;
+      z-index: 1;
+      font-size: 1.7rem;
+      font-weight: 900;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 25px 15px;
+      color: var(--muted);
+      font-size: .85rem;
+    }
+
+    .footer strong { color: var(--primary-dark); }
+
+    @media(max-width:750px) {
+      .header-inner {
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .header-nav {
+        width: 100%;
+        overflow-x: auto;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        padding-bottom: 5px;
+      }
+
+      .header-nav button { white-space: nowrap; }
+    }
+
+    @media(max-width:480px) {
+      .page-section { width: calc(100% - 18px); }
+      .hero { padding-top: 22px; }
+      .action-row button { width: 100%; }
+    }
+  </style>
 </head>
+
 <body>
-  <header>
-    <div class="brand">
-      <i class="fa-solid fa-rocket"></i>
-      <h1>کنکوریار</h1>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-inner">
+
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <span>کنکوریار</span>
+      </div>
+
+      <nav class="header-nav">
+
+        <button class="active" onclick="showPage('dashboard',this)">
+          <i class="fa-solid fa-house"></i>
+          خانه
+        </button>
+
+        <button onclick="showPage('setup',this)">
+          <i class="fa-solid fa-sliders"></i>
+          تنظیمات
+        </button>
+
+        <button onclick="showPage('plan',this)">
+          <i class="fa-solid fa-calendar-days"></i>
+          برنامه
+        </button>
+
+        <button onclick="showPage('quiz',this)">
+          <i class="fa-solid fa-clipboard-question"></i>
+          آزمون
+        </button>
+
+        <button onclick="showPage('analytics',this)">
+          <i class="fa-solid fa-chart-line"></i>
+          تحلیل
+        </button>
+
+        <button onclick="showPage('mistakes',this)">
+          <i class="fa-solid fa-book-open"></i>
+          اشتباهات
+        </button>
+
+      </nav>
     </div>
-    <nav>
-      <button data-target="setup" onclick="showPage('setup', this)"><i class="fa-solid fa-gear"></i> تنظیمات</button>
-      <button data-target="dashboard" onclick="showPage('dashboard', this)"><i class="fa-solid fa-house"></i> داشبورد</button>
-      <button data-target="plan" onclick="showPage('plan', this)"><i class="fa-solid fa-calendar-days"></i> برنامه کل</button>
-      <button data-target="quiz" onclick="showPage('quiz', this)"><i class="fa-solid fa-flask"></i> آزمون‌ساز</button>
-      <button data-target="analytics" onclick="showPage('analytics', this)"><i class="fa-solid fa-chart-line"></i> تحلیل آزمون</button>
-      <button data-target="mistakes" onclick="showPage('mistakes', this)"><i class="fa-solid fa-book-skull"></i> دفتر اشتباهات</button>
-    </nav>
   </header>
 
-  <main>
-    <!-- ================= صفحه تنظیمات ================= -->
-    <section id="page-setup" class="page">
-      <div class="card-main">
-        <h2><i class="fa-solid fa-sliders"></i> تنظیمات اولیه</h2>
-        <p class="subtitle">برای ساخت برنامه هوشمند، اطلاعات زیر را وارد کنید.</p>
-        <div class="input-group">
-          <label>رشته تحصیلی:</label>
-          <select id="field"><option value="تجربی">علوم تجربی</option></select>
+
+  <!-- HERO -->
+  <div class="hero">
+    <span class="hero-tag">
+      <i class="fa-solid fa-sparkles"></i>
+      همراه هوشمند کنکور تجربی ۱۴۰۶
+    </span>
+
+    <h1>قدم به قدم تا موفقیت 🌱</h1>
+
+    <p>
+      برنامه‌ریزی کن، مطالعه کن، آزمون بده و پیشرفتت را ببین.
+    </p>
+  </div>
+
+
+  <!-- DASHBOARD -->
+  <main id="page-dashboard" class="page-section active">
+
+    <div class="welcome-card">
+      <h2>سلام، به کنکوریار خوش آمدی! 👋</h2>
+      <p>
+        هر روز یک قدم به هدفت نزدیک‌تر شو.
+        امروز بهترین فرصت برای شروع است.
+      </p>
+    </div>
+
+    <div class="section-heading">
+      <i class="fa-solid fa-hourglass-half"></i>
+      <h2>شمارش معکوس کنکور</h2>
+    </div>
+
+    <div id="countdown-timer"></div>
+
+    <div class="section-heading">
+      <i class="fa-solid fa-chart-simple"></i>
+      <h2>وضعیت مطالعه</h2>
+    </div>
+
+    <div id="summary" class="stats-grid">
+      <div class="dashboard-card">
+        <h3><i class="fa-solid fa-book"></i> ساعت مطالعه</h3>
+        <strong id="totalStudyHours">۰</strong>
+        <p>ساعت ثبت‌شده</p>
+      </div>
+
+      <div class="dashboard-card">
+        <h3><i class="fa-solid fa-list-check"></i> جلسات مطالعه</h3>
+        <strong id="totalSessions">۰</strong>
+        <p>جلسه ثبت‌شده</p>
+      </div>
+
+      <div class="dashboard-card">
+        <h3><i class="fa-solid fa-pen-to-square"></i> آزمون‌ها</h3>
+        <strong id="totalExams">۰</strong>
+        <p>آزمون انجام‌شده</p>
+      </div>
+    </div>
+
+    <div class="section-heading">
+      <i class="fa-solid fa-list-check"></i>
+      <h2>کارهای امروز</h2>
+    </div>
+
+    <div id="todayTasks" class="card-main">
+      <div class="empty-state">
+        <i class="fa-solid fa-calendar-check"></i>
+        هنوز برنامه‌ای برای امروز ثبت نشده است.
+      </div>
+    </div>
+
+  </main>
+
+
+  <!-- SETUP -->
+  <main id="page-setup" class="page-section">
+
+    <div class="section-heading">
+      <i class="fa-solid fa-gears"></i>
+      <h2>تنظیمات برنامه‌ریزی</h2>
+    </div>
+
+    <div class="card-main">
+
+      <h3>اطلاعات تحصیلی</h3>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="field">رشته تحصیلی</label>
+          <select id="field">
+            <option value="علوم تجربی">علوم تجربی</option>
+          </select>
         </div>
-        <div class="input-group">
-          <label>چند روز تا کنکور مانده؟</label>
-          <input type="number" id="daysLeft" min="1" value="180">
+
+        <div class="form-group">
+          <label for="grade">پایه تحصیلی</label>
+          <select id="grade">
+            <option value="دوازدهم">دوازدهم</option>
+            <option value="فارغ‌التحصیل">فارغ‌التحصیل</option>
+          </select>
         </div>
-        <div class="input-group">
-          <label>هدف مطالعه روزانه (ساعت):</label>
-          <input type="number" id="dailyHours" min="1" max="16" value="6">
+
+        <div class="form-group">
+          <label for="dailyHours">ساعت مطالعه روزانه</label>
+          <input id="dailyHours" type="number" min="1" max="16" value="6">
         </div>
-        <button class="btn-primary" onclick="saveSetup()"><i class="fa-solid fa-wand-magic-sparkles"></i> ساخت برنامه خودکار</button>
-        <button class="btn-danger" style="width:100%; padding:12px; border-radius:8px; margin-top:15px; cursor:pointer;" onclick="clearPlan()">
-          <i class="fa-solid fa-trash"></i> پاک کردن کل برنامه
+
+        <div class="form-group">
+          <label for="daysLeft">روزهای باقی‌مانده</label>
+          <input id="daysLeft" type="number" value="244" readonly>
+          <small>این مقدار از شمارش معکوس محاسبه می‌شود.</small>
+        </div>
+
+      </div>
+
+      <div class="action-row">
+        <button onclick="saveSetup()">
+          <i class="fa-solid fa-floppy-disk"></i>
+          ذخیره تنظیمات
+        </button>
+
+        <button class="secondary" onclick="clearPlan()">
+          <i class="fa-solid fa-trash"></i>
+          پاک کردن برنامه
         </button>
       </div>
 
-      <!-- بخش آپلود PDF -->
-      <div class="card-main" style="border-color: #38bdf8; margin-top: 20px;">
-        <h3><i class="fa-solid fa-file-pdf"></i> آپلود فایل PDF سوالات</h3>
-        <p class="subtitle">فایل دفترچه سوالات و پاسخنامه را آپلود کنید تا سوالات به صورت خودکار استخراج شوند.</p>
-        <div class="input-group">
-          <input type="file" id="pdfQuestions" accept=".pdf" style="padding: 10px; background: rgba(0,0,0,0.2);">
-          <label style="font-size: 0.8rem; color: #94a3b8;">فایل سوالات</label>
-        </div>
-        <div class="input-group">
-          <input type="file" id="pdfAnswers" accept=".pdf" style="padding: 10px; background: rgba(0,0,0,0.2);">
-          <label style="font-size: 0.8rem; color: #94a3b8;">فایل پاسخنامه (کلید)</label>
-        </div>
-        <button class="btn-primary" onclick="extractFromPDF()"><i class="fa-solid fa-cogs"></i> شروع پردازش و استخراج</button>
-      </div>
-    </section>
+    </div>
 
-    <!-- ================= داشبورد ================= -->
-    <section id="page-dashboard" class="page hidden">
-      <h2 class="page-title">داشبورد کاربری</h2>
-      
-      <!-- روزشمار کنکور -->
-      <div class="countdown-container">
-        <h3 style="text-align:center; margin-bottom:15px; font-size:1rem; color:var(--text-muted);">⏳ زمان باقی‌مانده تا کنکور</h3>
-        <div id="countdown-timer" class="countdown-timer"></div>
+
+    <div class="section-heading">
+      <i class="fa-solid fa-file-pdf"></i>
+      <h2>ورود سوالات از PDF</h2>
+    </div>
+
+    <div class="card-main">
+
+      <p>
+        فایل سوالات و پاسخ‌نامه را انتخاب کن تا پردازش شوند.
+      </p>
+
+      <div class="file-upload">
+        <label for="pdfQuestions">فایل PDF سوالات</label>
+        <input type="file" id="pdfQuestions" accept=".pdf">
       </div>
 
-      <div id="summary" class="stats-grid"></div>
-      
-      <div class="card-main">
-        <h3><i class="fa-solid fa-list-check"></i> جلسات باقی‌مانده</h3>
-        <p class="subtitle">با تیک زدن هر مورد، از لیست حذف و در آمار ثبت می‌شود.</p>
-        <div id="todayTasks" class="session-list"></div>
+      <div class="file-upload">
+        <label for="pdfAnswers">فایل PDF پاسخ‌نامه</label>
+        <input type="file" id="pdfAnswers" accept=".pdf">
       </div>
-    </section>
 
-    <!-- ================= برنامه کل ================= -->
-    <section id="page-plan" class="page hidden">
-      <h2 class="page-title">برنامه هفتگی</h2>
-      
-      <!-- فرم افزودن برنامه دستی -->
-      <div class="card-main" style="border-color: #38bdf8;">
-        <h3><i class="fa-solid fa-plus"></i> افزودن برنامه دستی</h3>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-          <div class="input-group"><label>روز:</label><input type="number" id="manualDay" value="1" min="1"></div>
-          <div class="input-group"><label>مدت (دقیقه):</label><input type="number" id="manualMinutes" value="60" min="10" step="10"></div>
-        </div>
-        <div class="input-group">
-          <label>درس:</label>
-          <select id="manualSubject">
-            <option value="زیست">زیست</option><option value="فیزیک">فیزیک</option>
-            <option value="شیمی">شیمی</option><option value="ریاضی">ریاضی</option><option value="زمین‌شناسی">زمین‌شناسی</option>
+      <button onclick="extractFromPDF()">
+        <i class="fa-solid fa-file-import"></i>
+        استخراج اطلاعات
+      </button>
+
+      <div id="pdfStatus" aria-live="polite"></div>
+
+    </div>
+
+  </main>
+
+
+  <!-- PLAN -->
+  <main id="page-plan" class="page-section">
+
+    <div class="section-heading">
+      <i class="fa-solid fa-calendar-days"></i>
+      <h2>برنامه مطالعاتی</h2>
+    </div>
+
+    <div class="card-main">
+
+      <h3>افزودن جلسه مطالعه</h3>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="manualDay">روز مطالعه</label>
+          <select id="manualDay">
+            <option value="شنبه">شنبه</option>
+            <option value="یکشنبه">یکشنبه</option>
+            <option value="دوشنبه">دوشنبه</option>
+            <option value="سه‌شنبه">سه‌شنبه</option>
+            <option value="چهارشنبه">چهارشنبه</option>
+            <option value="پنجشنبه">پنجشنبه</option>
+            <option value="جمعه">جمعه</option>
           </select>
         </div>
-        <div class="input-group"><label>مبحث/فصل:</label><input type="text" id="manualChapter" placeholder="مثلا: مرور فصل 1"></div>
-        <button class="btn-primary" onclick="addManualSession()"><i class="fa-solid fa-check"></i> ثبت در برنامه</button>
-      </div>
-      
-      <div id="weeklyPlan" class="plan-grid"></div>
-    </section>
 
-    <!-- ================= آزمون ساز ================= -->
-    <section id="page-quiz" class="page hidden">
-      <h2 class="page-title">آزمون‌ساز هوشمند</h2>
-      
-      <div id="quizSetupArea" class="card-main">
-        <div class="input-group">
-          <label>درس:</label>
-          <select id="quizSubject" onchange="loadChapters()">
-            <option value="زیست">زیست</option><option value="فیزیک">فیزیک</option>
-            <option value="شیمی">شیمی</option><option value="ریاضی">ریاضی</option>
+        <div class="form-group">
+          <label for="manualSubject">درس</label>
+          <select id="manualSubject">
+            <option value="زیست‌شناسی">زیست‌شناسی</option>
+            <option value="شیمی">شیمی</option>
+            <option value="فیزیک">فیزیک</option>
+            <option value="ریاضی">ریاضی</option>
             <option value="زمین‌شناسی">زمین‌شناسی</option>
           </select>
         </div>
-        <div class="input-group">
-          <label>نوع آزمون:</label>
-          <select id="quizType" onchange="toggleQuizType()">
-            <option value="custom">فصل به فصل</option>
-            <option value="comprehensive">جامع (کل درس)</option>
-          </select>
+
+        <div class="form-group">
+          <label for="manualMinutes">مدت مطالعه (دقیقه)</label>
+          <input type="number" id="manualMinutes" min="10" value="90">
         </div>
-        <div id="customOptions">
-          <div class="input-group">
-            <label>پایه:</label>
-            <select id="quizGrade" onchange="loadChapters()">
-              <option>دهم</option><option>یازدهم</option><option>دوازدهم</option>
-            </select>
-          </div>
-          <div id="chapterList" class="chapter-checkboxes"></div>
+
+        <div class="form-group">
+          <label for="manualChapter">مبحث یا فصل</label>
+          <input type="text" id="manualChapter" placeholder="مثلاً فصل اول زیست">
         </div>
-        <div class="input-group"><label>تعداد سوال:</label><input type="number" id="quizCount" value="10" min="1" max="50"></div>
-        <button class="btn-primary" onclick="createQuiz()"><i class="fa-solid fa-play"></i> شروع آزمون</button>
+
       </div>
 
-      <!-- بخش اجرای آزمون (در ابتدا مخفی است) -->
-      <div id="quizArea" class="hidden">
-        <div id="quizTimer" class="timer-card">⏱️ زمان: 00:00</div>
-        <div id="quizQuestions"></div>
-        <button class="btn-primary btn-danger" onclick="submitQuiz()">پایان آزمون</button>
-      </div>
-    </section>
+      <button onclick="addManualSession()">
+        <i class="fa-solid fa-plus"></i>
+        افزودن به برنامه
+      </button>
 
-    <!-- ================= کارنامه ================= -->
-    <section id="page-exam-result" class="page hidden">
-      <h2 class="page-title">کارنامه آزمون</h2>
-      <div class="result-card">
-        <h3 id="res-subject" style="margin-bottom: 20px; text-align: center;">درس</h3>
-        <div class="result-circle-container">
-          <div id="res-percent-circle" class="result-circle"><span id="res-percent-text">0%</span></div>
-        </div>
-        <div class="result-details">
-          <div class="res-box"><span>تعداد کل</span><strong id="res-total">0</strong></div>
-          <div class="res-box green-box"><span>صحیح</span><strong id="res-correct">0</strong></div>
-          <div class="res-box red-box"><span>غلط</span><strong id="res-wrong">0</strong></div>
-          <div class="res-box blue-box"><span>تراز تخمینی</span><strong id="res-traz">0</strong></div>
-        </div>
-        <button class="btn-primary" onclick="showPage('quiz', document.querySelector('nav button[data-target=\'quiz\']'))" style="margin-top:30px;">
-          <i class="fa-solid fa-rotate-right"></i> بازگشت به آزمون‌ساز
-        </button>
-      </div>
-    </section>
+    </div>
 
-    <!-- ================= تحلیل آزمون ================= -->
-    <section id="page-analytics" class="page hidden">
-      <h2 class="page-title">تاریخچه آزمون‌ها</h2>
-      <div id="examList" class="session-list"></div>
-    </section>
+    <div class="section-heading">
+      <i class="fa-solid fa-calendar-week"></i>
+      <h2>برنامه هفتگی</h2>
+    </div>
 
-    <!-- ================= دفتر اشتباهات ================= -->
-    <section id="page-mistakes" class="page hidden">
-      <h2 class="page-title">دفتر اشتباهات</h2>
-      <div class="card-main">
-        <div class="input-group"><textarea id="mistakeText" rows="3" placeholder="نکته مهم را بنویسید..."></textarea></div>
-        <button class="btn-primary" onclick="addMistake()">افزودن</button>
+    <div id="weeklyPlan" class="card-main">
+      <div class="empty-state">
+        <i class="fa-solid fa-calendar"></i>
+        هنوز جلسه‌ای ثبت نشده است.
       </div>
-      <ul id="mistakeList" class="mistake-list"></ul>
-    </section>
+    </div>
+
   </main>
 
-  <!-- ================= اسکریپت‌ها (ترتیب مهم است) ================= -->
+
+  <!-- QUIZ -->
+  <main id="page-quiz" class="page-section">
+
+    <div class="section-heading">
+      <i class="fa-solid fa-clipboard-question"></i>
+      <h2>آزمون‌ساز کنکوریار</h2>
+    </div>
+
+    <div id="quizSetupArea" class="card-main">
+
+      <h3>ساخت آزمون جدید</h3>
+
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label for="quizSubject">درس</label>
+          <select id="quizSubject">
+            <option value="زیست‌شناسی">زیست‌شناسی</option>
+            <option value="شیمی">شیمی</option>
+            <option value="فیزیک">فیزیک</option>
+            <option value="ریاضی">ریاضی</option>
+            <option value="زمین‌شناسی">زمین‌شناسی</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quizType">نوع آزمون</label>
+          <select id="quizType">
+            <option value="آموزشی">آموزشی</option>
+            <option value="زمان‌دار">زمان‌دار</option>
+            <option value="مرور">مرور</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quizGrade">پایه</label>
+          <select id="quizGrade">
+            <option value="دهم">دهم</option>
+            <option value="یازدهم">یازدهم</option>
+            <option value="دوازدهم" selected>دوازدهم</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="quizCount">تعداد سوال</label>
+          <input type="number" id="quizCount" min="1" max="100" value="20">
+        </div>
+
+      </div>
+
+      <label for="chapterList">مباحث آزمون</label>
+      <textarea id="chapterList" rows="3"
+        placeholder="نام فصل‌ها یا مباحث موردنظر را بنویس..."></textarea>
+
+      <button onclick="createQuiz()">
+        <i class="fa-solid fa-play"></i>
+        ساخت آزمون
+      </button>
+
+    </div>
+
+
+    <div id="quizArea" class="card-main" hidden>
+
+      <div class="quiz-toolbar">
+        <strong>آزمون در حال اجرا</strong>
+        <span id="quizTimer">۰۰:۰۰</span>
+      </div>
+
+      <div id="quizQuestions"></div>
+
+      <button onclick="submitQuiz()">
+        <i class="fa-solid fa-check"></i>
+        پایان آزمون و مشاهده نتیجه
+      </button>
+
+    </div>
+
+  </main>
+
+
+  <!-- EXAM RESULT -->
+  <main id="page-exam-result" class="page-section">
+
+    <div class="section-heading">
+      <i class="fa-solid fa-trophy"></i>
+      <h2>نتیجه آزمون</h2>
+    </div>
+
+    <div class="card-main" style="text-align:center">
+
+      <h3 id="res-subject">نتیجه آزمون</h3>
+
+      <div id="res-percent-circle" class="result-circle">
+        <span id="res-percent-text">۰٪</span>
+      </div>
+
+      <div class="stats-grid">
+
+        <div>
+          <h3>کل سوالات</h3>
+          <strong id="res-total">۰</strong>
+        </div>
+
+        <div>
+          <h3>درست</h3>
+          <strong id="res-correct">۰</strong>
+        </div>
+
+        <div>
+          <h3>غلط</h3>
+          <strong id="res-wrong">۰</strong>
+        </div>
+
+        <div>
+          <h3>تراز</h3>
+          <strong id="res-traz">---</strong>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- ANALYTICS -->
+  <main id="page-analytics" class="page-section">
+
+    <div class="section-heading">
+      <i class="fa-solid fa-chart-pie"></i>
+      <h2>تحلیل عملکرد</h2>
+    </div>
+
+    <div class="card-main">
+
+      <h3>سوابق آزمون‌ها</h3>
+
+      <div id="examList">
+        <div class="empty-state">
+          <i class="fa-solid fa-chart-line"></i>
+          هنوز آزمونی ثبت نشده است.
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- MISTAKES -->
+  <main id="page-mistakes" class="page-section">
+
+    <div class="section-heading">
+      <i class="fa-solid fa-book-open"></i>
+      <h2>دفترچه اشتباهات</h2>
+    </div>
+
+    <div class="card-main">
+
+      <h3>ثبت نکته یا اشتباه جدید</h3>
+
+      <label for="mistakeText">نکته‌ای که باید دوباره مرور کنی</label>
+
+      <textarea id="mistakeText" rows="4"
+        placeholder="سوال، اشتباه، نکته یا دلیل پاسخ غلط را بنویس..."></textarea>
+
+      <button onclick="addMistake()">
+        <i class="fa-solid fa-plus"></i>
+        ثبت در دفترچه
+      </button>
+
+    </div>
+
+    <div class="card-main">
+
+      <h3>اشتباهات ثبت‌شده</h3>
+
+      <div id="mistakeList">
+        <div class="empty-state">
+          <i class="fa-solid fa-bookmark"></i>
+          هنوز نکته‌ای ثبت نشده است.
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p>
+      ساخته شده با ❤️ برای مسیر موفقیت تو
+    </p>
+    <strong>کنکوریار | کنکور ۱۴۰۶</strong>
+  </footer>
+
+
+  <!-- PAGE NAVIGATION -->
+  <script>
+    function showPage(pageName, button) {
+      document.querySelectorAll(".page-section").forEach(page => {
+        page.classList.remove("active");
+      });
+
+      const target = document.getElementById("page-" + pageName);
+
+      if (target) {
+        target.classList.add("active");
+      }
+
+      document.querySelectorAll(".header-nav button").forEach(btn => {
+        btn.classList.remove("active");
+      });
+
+      if (button) {
+        button.classList.add("active");
+      }
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  </script>
+
+
+  <!-- PROJECT SCRIPTS -->
   <script src="js/supabase-client.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/planner.js"></script>
   <script src="js/pdf-processor.js"></script>
   <script src="js/quiz-engine.js"></script>
   <script src="js/app.js"></script>
+  <script src="js/countdown.js"></script>
+
 </body>
-</html>
+  </html>
+            
