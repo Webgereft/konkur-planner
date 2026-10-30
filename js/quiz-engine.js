@@ -1,36 +1,42 @@
 
 "use strict";
 
-/*
- * موتور آزمون کنکوریار
- * دریافت سؤال‌ها از Supabase
- * پاسخ صحیح در دیتابیس: 1 تا 4
- * پاسخ صحیح در موتور آزمون: 0 تا 3
- */
+/* =====================================
+   تنظیمات موتور آزمون
+===================================== */
+
+const QUIZ_SETTINGS = {
+  secondsPerQuestion: 90,
+  negativeMarking: true,
+  negativeMarkingFactor: 3
+};
 
 let currentQuiz = {
   questions: [],
-  answers: [],
-  startTime: null,
-  timerInterval: null,
+  answers: {},
   subject: "",
-  type: "آموزشی",
-  duration: 0
+  type: "بدون زمان",
+  startTime: null,
+  duration: 0,
+  timerInterval: null,
+  submitted: false
 };
 
-// تبدیل نام درس‌ها به نام استاندارد دیتابیس
+/* =====================================
+   ابزارهای کمکی
+===================================== */
+
 function normalizeQuizSubject(subject) {
   const aliases = {
     "زیست": "زیست‌شناسی",
-    "زیست شناسی": "زیست‌شناسی"
+    "زمین": "زمین‌شناسی"
   };
 
   return aliases[subject] || subject;
 }
 
-// انتخاب تصادفی سؤال‌ها بدون تکرار
-function shuffleQuestions(items) {
-  const result = [...items];
+function shuffleQuizQuestions(questions) {
+  const result = [...questions];
 
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -40,8 +46,7 @@ function shuffleQuestions(items) {
   return result;
 }
 
-// جلوگیری از ورود متن سؤال به HTML به شکل کد
-function escapeQuizHTML(value) {
+function quizEscapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
     "<": "&lt;",
@@ -51,12 +56,11 @@ function escapeQuizHTML(value) {
   })[char]);
 }
 
-// دریافت سؤال‌های معتبر از Supabase
-async function fetchQuestionsFromDB(subject, count) {
-  if (typeof supabaseClient === "undefined") {
-    throw new Error("اتصال Supabase برقرار نیست.");
-  }
+/* =====================================
+   دریافت سؤال از Supabase
+===================================== */
 
+async function fetchQuestionsFromDB(subject, count) {
   const normalizedSubject = normalizeQuizSubject(subject);
 
   const { data, error } = await supabaseClient
@@ -64,6 +68,8 @@ async function fetchQuestionsFromDB(subject, count) {
     .select(`
       id,
       subject,
+      exam_year,
+      exam_session,
       question_number,
       question_text,
       option_a,
@@ -72,8 +78,7 @@ async function fetchQuestionsFromDB(subject, count) {
       option_d,
       correct_answer,
       explanation,
-      exam_year,
-      exam_session,
+      source,
       exam_location,
       verification_status
     `)
@@ -82,253 +87,289 @@ async function fetchQuestionsFromDB(subject, count) {
     .not("correct_answer", "is", null);
 
   if (error) {
-    console.error("خطای دریافت سؤال‌ها:", error);
-    throw new Error("دریافت سؤال‌ها ناموفق بود: " + error.message);
+    console.error("خطا در دریافت سؤال‌ها:", error);
+    throw new Error("دریافت سؤال‌ها از بانک اطلاعاتی ناموفق بود.");
   }
 
-  const questions = (data || [])
-    .map(row => {
-      const options = [
-        row.option_a,
-        row.option_b,
-        row.option_c,
-        row.option_d
-      ];
+  if (!data || data.length === 0) {
+    throw new Error(
+      "برای این درس سؤال تأییدشده‌ای پیدا نشد. ابتدا سؤال‌ها را در بانک سؤال تأیید کن."
+    );
+  }
 
-      const answer = Number(row.correct_answer) - 1;
+  const validQuestions = data.filter(q => {
+    const answer = Number(q.correct_answer);
 
-      if (
-        !row.question_text ||
-        options.some(option => !option) ||
-        !Number.isInteger(answer) ||
-        answer < 0 ||
-        answer > 3
-      ) {
-        return null;
-      }
+    return (
+      q.question_text &&
+      q.option_a &&
+      q.option_b &&
+      q.option_c &&
+      q.option_d &&
+      answer >= 1 &&
+      answer <= 4
+    );
+  });
 
-      return {
-        id: row.id,
-        q: row.question_text,
-        options,
-        answer,
-        explanation: row.explanation || "",
-        subject: row.subject,
-        year: row.exam_year,
-        session: row.exam_session,
-        number: row.question_number,
-        location: row.exam_location
-      };
-    })
-    .filter(Boolean);
+  if (!validQuestions.length) {
+    throw new Error("سؤال معتبر و دارای پاسخ صحیح در بانک پیدا نشد.");
+  }
 
-  return shuffleQuestions(questions).slice(
-    0,
-    Math.max(1, Number(count) || 10)
-  );
+  return shuffleQuizQuestions(validQuestions)
+    .slice(0, Math.min(count, validQuestions.length))
+    .map(q => ({
+      id: q.id,
+      subject: q.subject,
+      question_number: q.question_number,
+      question_text: q.question_text,
+      options: [
+        q.option_a,
+        q.option_b,
+        q.option_c,
+        q.option_d
+      ],
+      answer: Number(q.correct_answer) - 1,
+      explanation: q.explanation || "",
+      exam_year: q.exam_year,
+      exam_session: q.exam_session
+    }));
 }
 
-// ساخت آزمون از بانک سؤال
-async function startComprehensiveQuiz(subject, count) {
-  await createQuizFromDatabase(subject, count, "آموزشی");
-}
+/* =====================================
+   ساخت آزمون
+===================================== */
 
-// ساخت آزمون انتخابی
-async function startCustomQuiz(subject, grade, chapters, count) {
-  /*
-   * در نسخه فعلی جدول questions_bank ستون‌های grade و chapter ندارد.
-   * بنابراین فعلاً آزمون انتخابی از کل بانک همان درس ساخته می‌شود.
-   * بعد از افزودن ستون‌ها، فیلتر فصل و پایه را فعال می‌کنیم.
-   */
-  await createQuizFromDatabase(subject, count, "آموزشی");
-}
-
-// ساخت و شروع آزمون
 async function createQuizFromDatabase(subject, count, type) {
-  const button = document.querySelector(
-    'button[onclick="createQuiz()"]'
+  const startButton = document.querySelector(
+    '#quizSetupArea button[onclick="createQuiz()"]'
   );
 
   try {
-    if (button) {
-      button.disabled = true;
-      button.innerText = "در حال دریافت سؤال‌ها...";
+    if (startButton) {
+      startButton.disabled = true;
+      startButton.textContent = "در حال دریافت سؤال‌ها...";
+    }
+
+    if (!Number.isInteger(Number(count)) || Number(count) < 1) {
+      throw new Error("تعداد سؤال معتبر نیست.");
+    }
+
+    if (!["زمان‌دار", "بدون زمان"].includes(type)) {
+      throw new Error("نوع آزمون معتبر نیست.");
     }
 
     const questions = await fetchQuestionsFromDB(
       subject,
-      count
+      Number(count)
     );
 
     if (!questions.length) {
-      alert(
-        "سؤال تأییدشده‌ای برای این درس پیدا نشد.\n\n" +
-        "ابتدا سؤال‌ها را در جدول questions_bank بررسی و " +
-        "verification_status آن‌ها را به verified تغییر بده."
-      );
-      return;
+      throw new Error("سؤالی برای این آزمون پیدا نشد.");
     }
 
-    initQuizSession(
-      questions,
-      normalizeQuizSubject(subject),
-      type
-    );
+    initQuizSession(questions, subject, type);
 
   } catch (error) {
     console.error(error);
-    alert(error.message || "خطا در ساخت آزمون.");
+    alert(error.message || "ساخت آزمون با خطا مواجه شد.");
 
   } finally {
-    if (button) {
-      button.disabled = false;
-      button.innerText = "ساخت آزمون";
+    if (startButton) {
+      startButton.disabled = false;
+      startButton.textContent = "شروع آزمون 🚀";
     }
   }
 }
 
-// راه‌اندازی جلسه آزمون
-function initQuizSession(questions, title, type = "آموزشی") {
-  if (currentQuiz.timerInterval) {
-    clearInterval(currentQuiz.timerInterval);
-  }
+/* =====================================
+   شروع جلسه آزمون
+===================================== */
+
+function initQuizSession(questions, subject, type) {
+  clearInterval(currentQuiz.timerInterval);
 
   currentQuiz = {
     questions,
-    answers: new Array(questions.length).fill(null),
-    startTime: Date.now(),
-    timerInterval: null,
-    subject: title,
+    answers: {},
+    subject,
     type,
+    startTime: Date.now(),
     duration: type === "زمان‌دار"
-      ? questions.length * 90
-      : 0
+      ? questions.length * QUIZ_SETTINGS.secondsPerQuestion
+      : 0,
+    timerInterval: null,
+    submitted: false
   };
 
-  const setup = document.getElementById("quizSetupArea");
-  const area = document.getElementById("quizArea");
+  const setupArea = document.getElementById("quizSetupArea");
+  const quizArea = document.getElementById("quizArea");
 
-  if (setup) setup.style.display = "none";
-  if (area) area.style.display = "block";
+  if (setupArea) setupArea.style.display = "none";
+  if (quizArea) quizArea.style.display = "block";
 
   renderQuizUI();
   updateQuizTimer();
 
   currentQuiz.timerInterval = setInterval(() => {
+    if (currentQuiz.submitted) return;
+
     updateQuizTimer();
 
     if (
       currentQuiz.type === "زمان‌دار" &&
-      getRemainingTime() <= 0
+      getQuizRemainingTime() <= 0
     ) {
-      submitQuiz();
+      submitQuiz(true);
     }
   }, 1000);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
 }
 
-// زمان باقی‌مانده آزمون
-function getRemainingTime() {
-  if (currentQuiz.type !== "زمان‌دار") return 0;
+/* =====================================
+   محاسبه زمان
+===================================== */
 
-  const elapsed = Math.floor(
+function getQuizElapsedTime() {
+  if (!currentQuiz.startTime) return 0;
+
+  return Math.floor(
     (Date.now() - currentQuiz.startTime) / 1000
   );
-
-  return Math.max(0, currentQuiz.duration - elapsed);
 }
 
-// نمایش زمان
+function getQuizRemainingTime() {
+  if (currentQuiz.type !== "زمان‌دار") return 0;
+
+  return Math.max(
+    0,
+    currentQuiz.duration - getQuizElapsedTime()
+  );
+}
+
+function formatQuizTime(seconds) {
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = seconds % 60;
+
+  return (
+    String(minutes).padStart(2, "0") +
+    ":" +
+    String(remainingSeconds).padStart(2, "0")
+  );
+}
+
 function updateQuizTimer() {
   const timer = document.getElementById("quizTimer");
+
   if (!timer) return;
 
   if (currentQuiz.type === "زمان‌دار") {
-    const remaining = getRemainingTime();
-    const minutes = Math.floor(remaining / 60);
-    const seconds = remaining % 60;
+    const remaining = getQuizRemainingTime();
 
-    timer.innerText =
-      `زمان باقی‌مانده: ${String(minutes).padStart(2, "0")}:` +
-      `${String(seconds).padStart(2, "0")}`;
+    timer.textContent =
+      "⏳ زمان باقی‌مانده: " + formatQuizTime(remaining);
+
+    if (remaining <= 60) {
+      timer.style.background = "#ffe6ed";
+      timer.style.color = "#c34b70";
+    } else {
+      timer.style.background = "";
+      timer.style.color = "";
+    }
 
   } else {
-    const elapsed = Math.floor(
-      (Date.now() - currentQuiz.startTime) / 1000
-    );
+    timer.textContent =
+      "⏱️ زمان سپری‌شده: " +
+      formatQuizTime(getQuizElapsedTime());
 
-    const minutes = Math.floor(elapsed / 60);
-    const seconds = elapsed % 60;
-
-    timer.innerText =
-      `زمان سپری‌شده: ${String(minutes).padStart(2, "0")}:` +
-      `${String(seconds).padStart(2, "0")}`;
+    timer.style.background = "";
+    timer.style.color = "";
   }
 }
 
-// نمایش سؤال‌ها
+/* =====================================
+   نمایش سؤال‌ها
+===================================== */
+
 function renderQuizUI() {
   const container = document.getElementById("quizQuestions");
+
   if (!container) return;
 
   container.innerHTML = currentQuiz.questions
-    .map((question, index) => {
-      const optionsHTML = question.options
-        .map((option, optionIndex) => {
-          const checked =
-            currentQuiz.answers[index] === optionIndex;
+    .map((question, index) => `
+      <div
+        class="card quiz-question"
+        id="quiz-question-${index}"
+      >
+        <h4>
+          سؤال ${Number(index + 1).toLocaleString("fa-IR")}
+        </h4>
 
-          return `
-            <label class="option-label">
+        <p>${quizEscapeHTML(question.question_text)}</p>
+
+        <div class="quiz-options">
+          ${question.options.map((option, optionIndex) => `
+            <label class="quiz-option">
               <input
                 type="radio"
                 name="question_${index}"
                 value="${optionIndex}"
-                ${checked ? "checked" : ""}
                 onchange="selectQuizAnswer(${index}, ${optionIndex})"
               >
+
               <span>
-                ${escapeQuizHTML(option)}
+                ${["الف", "ب", "ج", "د"][optionIndex]}.
+                ${quizEscapeHTML(option)}
               </span>
             </label>
-          `;
-        })
-        .join("");
-
-      return `
-        <div class="question-card">
-          <h4>
-            سؤال ${index + 1}
-          </h4>
-
-          <div class="question-text">
-            ${escapeQuizHTML(question.q)}
-          </div>
-
-          <div class="question-options">
-            ${optionsHTML}
-          </div>
+          `).join("")}
         </div>
-      `;
-    })
+
+        <p class="muted" id="answer-status-${index}">
+          هنوز پاسخی انتخاب نشده است.
+        </p>
+      </div>
+    `)
     .join("");
 }
 
-// ثبت پاسخ داوطلب
+/* =====================================
+   ثبت پاسخ کاربر
+===================================== */
+
 function selectQuizAnswer(questionIndex, optionIndex) {
-  if (!currentQuiz.questions[questionIndex]) return;
+  if (currentQuiz.submitted) return;
 
-  currentQuiz.answers[questionIndex] = optionIndex;
-}
-
-// ثبت و تصحیح آزمون
-async function submitQuiz() {
-  if (!currentQuiz.questions.length) return;
-
-  if (currentQuiz.timerInterval) {
-    clearInterval(currentQuiz.timerInterval);
-    currentQuiz.timerInterval = null;
+  if (
+    questionIndex < 0 ||
+    questionIndex >= currentQuiz.questions.length
+  ) {
+    return;
   }
 
+  if (optionIndex < 0 || optionIndex > 3) return;
+
+  currentQuiz.answers[questionIndex] = optionIndex;
+
+  const status = document.getElementById(
+    "answer-status-" + questionIndex
+  );
+
+  if (status) {
+    status.textContent = "پاسخ انتخاب شد ✓";
+    status.style.color = "#26785c";
+  }
+}
+
+/* =====================================
+   محاسبه نتیجه آزمون
+===================================== */
+
+function calculateQuizResult() {
   const questions = currentQuiz.questions;
 
   let correct = 0;
@@ -336,11 +377,11 @@ async function submitQuiz() {
   let unanswered = 0;
 
   questions.forEach((question, index) => {
-    const answer = currentQuiz.answers[index];
+    const selected = currentQuiz.answers[index];
 
-    if (answer === null || answer === undefined) {
+    if (selected === undefined) {
       unanswered++;
-    } else if (answer === question.answer) {
+    } else if (selected === question.answer) {
       correct++;
     } else {
       wrong++;
@@ -348,104 +389,164 @@ async function submitQuiz() {
   });
 
   const total = questions.length;
-  const answered = correct + wrong;
 
-  // درصد پاسخ صحیح از کل سؤال‌ها
-  const percent = total
-    ? Math.round((correct / total) * 100)
+  const rawPercent = total
+    ? (correct / total) * 100
     : 0;
 
-  // درصد پاسخ صحیح با نمره منفی استاندارد چهارگزینه‌ای
+  const netScore = QUIZ_SETTINGS.negativeMarking
+    ? correct - wrong / QUIZ_SETTINGS.negativeMarkingFactor
+    : correct;
+
   const netPercent = total
-    ? Math.round(
-        ((correct - wrong / 3) / total) * 10000
-      ) / 100
+    ? (netScore / total) * 100
     : 0;
 
-  const elapsedSeconds = Math.floor(
-    (Date.now() - currentQuiz.startTime) / 1000
-  );
-
-  // تراز صرفاً تخمینی است و تراز رسمی محسوب نمی‌شود
   const estimatedTraz = Math.max(
     0,
     Math.round(5000 + netPercent * 20)
   );
 
-  const exam = {
-    id: "exam_" + Date.now(),
-    subject: currentQuiz.subject,
-    type: currentQuiz.type,
-    date: new Date().toISOString(),
+  return {
     total,
     correct,
     wrong,
     unanswered,
-    answered,
-    percent,
-    netPercent,
-    traz: estimatedTraz,
-    durationSeconds: elapsedSeconds
+    percent: Number(rawPercent.toFixed(1)),
+    netPercent: Number(netPercent.toFixed(1)),
+    traz: estimatedTraz
+  };
+}
+
+/* =====================================
+   ثبت نهایی آزمون
+===================================== */
+
+async function submitQuiz(autoSubmitted = false) {
+  if (
+    currentQuiz.submitted ||
+    !currentQuiz.questions.length
+  ) {
+    return;
+  }
+
+  if (
+    !autoSubmitted &&
+    !confirm("آیا از ثبت و تصحیح آزمون مطمئنی؟")
+  ) {
+    return;
+  }
+
+  currentQuiz.submitted = true;
+  clearInterval(currentQuiz.timerInterval);
+
+  const result = calculateQuizResult();
+
+  const exam = {
+    id: "exam_" + Date.now(),
+    subject: currentQuiz.subject,
+    type: currentQuiz.type,
+    ...result,
+    duration: getQuizElapsedTime(),
+    date: new Date().toISOString()
   };
 
-  // ذخیره نتیجه
-  if (typeof EXAMS !== "undefined") {
-    EXAMS.push(exam);
-
-    if (typeof DB !== "undefined") {
+  try {
+    if (typeof EXAMS !== "undefined" && Array.isArray(EXAMS)) {
+      EXAMS.push(exam);
       await DB.set("exams", EXAMS);
     }
+
+  } catch (error) {
+    console.error("خطا در ذخیره نتیجه آزمون:", error);
+    alert("نتیجه محاسبه شد، اما ذخیره آن در فضای ابری با مشکل مواجه شد.");
   }
 
-  // نمایش نتیجه
-  const setText = (id, value) => {
-    const element = document.getElementById(id);
-    if (element) element.innerText = value;
-  };
+  showQuizResult(result);
 
-  setText("res-subject", exam.subject);
-  setText("res-total", total);
-  setText("res-correct", correct);
-  setText("res-wrong", wrong);
-  setText("res-traz", estimatedTraz);
-  setText("res-percent-text", percent + "%");
-
-  const circle = document.getElementById("res-percent-circle");
-
-  if (circle) {
-    circle.style.borderColor =
-      percent >= 70
-        ? "#10b981"
-        : percent >= 40
-          ? "#f59e0b"
-          : "#f43f5e";
-
-    circle.style.color = circle.style.borderColor;
+  if (typeof updateDashboard === "function") {
+    updateDashboard();
   }
 
-  // نمایش تعداد نزده‌ها در صورت وجود عنصر
-  setText("res-unanswered", unanswered);
-
-  // نمایش درصد نمره منفی‌دار در صورت وجود عنصر
-  setText("res-net-percent", netPercent + "%");
+  if (typeof renderExams === "function") {
+    renderExams();
+  }
 
   if (typeof showPage === "function") {
     showPage("exam-result");
   }
 
-  return exam;
-}
-
-// بازگشت به صفحه انتخاب آزمون
-function exitQuiz() {
-  if (currentQuiz.timerInterval) {
-    clearInterval(currentQuiz.timerInterval);
-    currentQuiz.timerInterval = null;
+  if (autoSubmitted) {
+    alert("زمان آزمون تمام شد و پاسخ‌ها به‌صورت خودکار ثبت شدند.");
   }
 
-  const area = document.getElementById("quizArea");
-  const setup = document.getElementById("quizSetupArea");
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+}
 
-  if (area) area.style.display = "none";
-  if (setup) setup.style.display = "block";
+/* =====================================
+   نمایش نتیجه در صفحه
+===================================== */
+
+function showQuizResult(result) {
+  const values = {
+    "res-subject": currentQuiz.subject,
+    "res-total": result.total,
+    "res-correct": result.correct,
+    "res-wrong": result.wrong,
+    "res-traz": result.traz,
+    "res-percent-text": result.percent + "%"
+  };
+
+  Object.entries(values).forEach(([id, value]) => {
+    const element = document.getElementById(id);
+
+    if (element) {
+      element.textContent = String(value);
+    }
+  });
+
+  const circle = document.getElementById("res-percent-circle");
+
+  if (circle) {
+    circle.style.setProperty("--percent", result.percent);
+    circle.style.background =
+      `conic-gradient(var(--primary) ${result.percent}%, #eee ${result.percent}% 100%)`;
+  }
+}
+
+/* =====================================
+   خروج از آزمون
+===================================== */
+
+function exitQuiz() {
+  if (
+    !currentQuiz.submitted &&
+    !confirm("با خروج از آزمون، پاسخ‌ها ثبت نمی‌شوند. ادامه می‌دهی؟")
+  ) {
+    return;
+  }
+
+  clearInterval(currentQuiz.timerInterval);
+
+  currentQuiz.submitted = true;
+
+  const setupArea = document.getElementById("quizSetupArea");
+  const quizArea = document.getElementById("quizArea");
+
+  if (setupArea) setupArea.style.display = "block";
+  if (quizArea) quizArea.style.display = "none";
+
+  const questions = document.getElementById("quizQuestions");
+
+  if (questions) questions.innerHTML = "";
+
+  currentQuiz.questions = [];
+  currentQuiz.answers = {};
+
+  if (typeof showPage === "function") {
+    showPage("quiz");
+  }
 }
