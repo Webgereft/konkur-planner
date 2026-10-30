@@ -8,6 +8,9 @@
   <meta name="description" content="کنکوریار؛ برنامه‌ریزی، آزمون و تحلیل هوشمند برای کنکور تجربی">
   <title>کنکوریار | همراه مسیر موفقیت</title>
 
+  <link rel="icon" type="image/png" href="logo.png">
+  <link rel="apple-touch-icon" href="logo.png">
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -45,8 +48,6 @@
     button { cursor: pointer; }
     .hidden { display: none !important; }
 
-    /* ورود و ثبت نام */
-
     #authPage {
       min-height: 100vh;
       display: none;
@@ -67,15 +68,21 @@
     }
 
     .auth-logo {
-      width: 70px;
-      height: 70px;
+      width: 110px;
+      height: 110px;
       margin: 0 auto 15px;
       display: grid;
       place-items: center;
-      border-radius: 22px;
-      background: linear-gradient(135deg,#8061ce,#b18be9);
-      color: white;
-      font-size: 32px;
+      border-radius: 24px;
+      overflow: hidden;
+      background: white;
+      box-shadow: 0 8px 25px rgba(80,50,130,.12);
+    }
+
+    .auth-logo img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
     }
 
     .auth-card h1 { color: var(--primary); margin: 8px 0; }
@@ -124,8 +131,6 @@
       margin-top: 12px;
     }
 
-    /* بدنه برنامه */
-
     #appContent {
       display: none;
       min-height: 100vh;
@@ -146,9 +151,19 @@
     }
 
     .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       font-size: 22px;
       font-weight: 800;
       color: var(--primary);
+    }
+
+    .brand img {
+      width: 48px;
+      height: 48px;
+      object-fit: contain;
+      border-radius: 12px;
     }
 
     .user-area {
@@ -264,7 +279,6 @@
     .btn-danger { background: #e87991; }
 
     input,select,textarea { max-width: 100%; }
-
     .field { margin: 12px 0; }
 
     .field label {
@@ -434,6 +448,7 @@
       .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .topbar { padding: 10px 12px; }
       .brand { font-size: 18px; }
+      .brand img { width: 40px; height: 40px; }
       #userEmail { max-width: 105px; }
       .auth-card { padding: 24px 18px; }
       .countdown-number { font-size: 20px; }
@@ -443,62 +458,42 @@
 
 <body>
 
-<!-- صفحه ورود و ثبت نام -->
-
 <div id="authPage">
   <div class="auth-card">
-    <div class="auth-logo">📚</div>
+    <div class="auth-logo">
+      <img src="logo.png" alt="لوگوی کنکوریار">
+    </div>
     <h1>کنکوریار</h1>
     <p>همراه تو تا موفقیت در کنکور ۱۴۰۶</p>
 
     <h3 id="authTitle">ورود به حساب کاربری</h3>
 
     <form id="loginForm">
-      <input class="auth-input" id="loginEmail"
-        type="email" placeholder="ایمیل"
-        autocomplete="email" required>
-
-      <input class="auth-input" id="loginPassword"
-        type="password" placeholder="رمز عبور"
-        autocomplete="current-password" required>
-
+      <input class="auth-input" id="loginEmail" type="email" placeholder="ایمیل" autocomplete="email" required>
+      <input class="auth-input" id="loginPassword" type="password" placeholder="رمز عبور" autocomplete="current-password" required>
       <button class="auth-button" type="submit">ورود به حساب</button>
-
-      <p>حساب کاربری نداری؟
-        <a class="auth-link" href="#" id="showRegister">ثبت‌نام کن</a>
-      </p>
+      <p>حساب کاربری نداری؟ <a class="auth-link" href="#" id="showRegister">ثبت‌نام کن</a></p>
     </form>
 
     <form id="registerForm" style="display:none">
-      <input class="auth-input" id="registerEmail"
-        type="email" placeholder="ایمیل"
-        autocomplete="email" required>
-
-      <input class="auth-input" id="registerPassword"
-        type="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)"
-        autocomplete="new-password" minlength="8" required>
-
-      <input class="auth-input" id="confirmPassword"
-        type="password" placeholder="تکرار رمز عبور"
-        autocomplete="new-password" minlength="8" required>
-
+      <input class="auth-input" id="registerEmail" type="email" placeholder="ایمیل" autocomplete="email" required>
+      <input class="auth-input" id="registerPassword" type="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)" autocomplete="new-password" minlength="8" required>
+      <input class="auth-input" id="confirmPassword" type="password" placeholder="تکرار رمز عبور" autocomplete="new-password" minlength="8" required>
       <button class="auth-button" type="submit">ساخت حساب رایگان</button>
-
-      <p>قبلاً ثبت‌نام کرده‌ای؟
-        <a class="auth-link" href="#" id="showLogin">وارد شو</a>
-      </p>
+      <p>قبلاً ثبت‌نام کرده‌ای؟ <a class="auth-link" href="#" id="showLogin">وارد شو</a></p>
     </form>
 
     <div id="authMessage" class="auth-message"></div>
   </div>
 </div>
 
-<!-- محتوای اصلی سایت -->
-
 <div id="appContent">
 
   <header class="topbar">
-    <div class="brand">💜 کنکوریار</div>
+    <div class="brand">
+      <img src="logo.png" alt="لوگوی کنکوریار">
+      <span>کنکوریار</span>
+    </div>
 
     <div class="user-area">
       <span id="userEmail"></span>
@@ -507,7 +502,6 @@
   </header>
 
   <div class="app-layout">
-
     <aside class="sidebar">
       <button class="nav-btn active" onclick="showPage('dashboard')">🏠 داشبورد</button>
       <button class="nav-btn" onclick="showPage('profile')">👤 پروفایل من</button>
@@ -520,122 +514,65 @@
 
     <main class="main-content">
 
-      <!-- داشبورد -->
-
       <section id="page-dashboard" class="page-section active">
         <h2 class="page-title">داشبورد من 🌸</h2>
 
         <div class="countdown-card">
           <h3>تا کنکور ۱۴۰۶ چقدر باقی مانده؟</h3>
           <p>هر روز یک قدم به هدفت نزدیک‌تر شو.</p>
-
           <div class="countdown-grid">
-            <div>
-              <div class="countdown-number" id="countdown-days">---</div>
-              <div class="countdown-label">روز</div>
-            </div>
-            <div>
-              <div class="countdown-number" id="countdown-hours">--</div>
-              <div class="countdown-label">ساعت</div>
-            </div>
-            <div>
-              <div class="countdown-number" id="countdown-minutes">--</div>
-              <div class="countdown-label">دقیقه</div>
-            </div>
-            <div>
-              <div class="countdown-number" id="countdown-seconds">--</div>
-              <div class="countdown-label">ثانیه</div>
-            </div>
+            <div><div class="countdown-number" id="countdown-days">---</div><div class="countdown-label">روز</div></div>
+            <div><div class="countdown-number" id="countdown-hours">--</div><div class="countdown-label">ساعت</div></div>
+            <div><div class="countdown-number" id="countdown-minutes">--</div><div class="countdown-label">دقیقه</div></div>
+            <div><div class="countdown-number" id="countdown-seconds">--</div><div class="countdown-label">ثانیه</div></div>
           </div>
         </div>
 
         <div class="stats-grid">
-          <div class="stat-card">
-            <span>⏱️ ساعت مطالعه</span>
-            <strong id="totalStudyHours">۰</strong>
-          </div>
-          <div class="stat-card">
-            <span>📚 جلسات مطالعه</span>
-            <strong id="totalSessions">۰</strong>
-          </div>
-          <div class="stat-card">
-            <span>📝 آزمون‌ها</span>
-            <strong id="totalExams">۰</strong>
-          </div>
+          <div class="stat-card"><span>⏱️ ساعت مطالعه</span><strong id="totalStudyHours">۰</strong></div>
+          <div class="stat-card"><span>📚 جلسات مطالعه</span><strong id="totalSessions">۰</strong></div>
+          <div class="stat-card"><span>📝 آزمون‌ها</span><strong id="totalExams">۰</strong></div>
         </div>
 
         <div class="card" style="margin-top:18px">
           <h3>🌱 وضعیت امروز</h3>
-          <div id="summary">
-            <p class="muted">هنوز اطلاعاتی ثبت نشده است.</p>
-          </div>
+          <div id="summary"><p class="muted">هنوز اطلاعاتی ثبت نشده است.</p></div>
         </div>
 
         <div class="card">
           <h3>کارهای پیش رو</h3>
-          <div id="todayTasks">
-            <p class="muted">هنوز برنامه‌ای ثبت نشده است.</p>
-          </div>
+          <div id="todayTasks"><p class="muted">هنوز برنامه‌ای ثبت نشده است.</p></div>
         </div>
       </section>
 
-      <!-- پروفایل دانش‌آموز -->
-
       <section id="page-profile" class="page-section">
         <h2 class="page-title">پروفایل من 👤</h2>
-
         <div class="card">
           <h3>اطلاعات شخصی</h3>
-
-          <p class="muted">
-            نام و نام خانوادگی خودت را وارد کن.
-            این اطلاعات برای نمایش در کارنامه و فایل‌های PDF استفاده خواهد شد.
-            تکمیل این بخش اختیاری است و هر زمان بخواهی می‌توانی آن را ویرایش کنی.
-          </p>
+          <p class="muted">نام و نام خانوادگی برای نمایش در کارنامه و فایل‌های PDF استفاده می‌شود. تکمیل این بخش اختیاری است.</p>
 
           <div class="field">
             <label for="profileFirstName">نام</label>
-            <input
-              type="text"
-              id="profileFirstName"
-              placeholder="مثلاً علی"
-              maxlength="50"
-              autocomplete="given-name"
-            >
+            <input type="text" id="profileFirstName" placeholder="مثلاً علی" maxlength="50" autocomplete="given-name">
           </div>
 
           <div class="field">
             <label for="profileLastName">نام خانوادگی</label>
-            <input
-              type="text"
-              id="profileLastName"
-              placeholder="مثلاً رضایی"
-              maxlength="70"
-              autocomplete="family-name"
-            >
+            <input type="text" id="profileLastName" placeholder="مثلاً رضایی" maxlength="70" autocomplete="family-name">
           </div>
 
-          <button class="btn" onclick="saveProfile()">
-            ذخیره اطلاعات
-          </button>
-
+          <button class="btn" onclick="saveProfile()">ذخیره اطلاعات</button>
           <p id="profileMessage" class="muted" aria-live="polite"></p>
         </div>
       </section>
 
-      <!-- تنظیمات -->
-
       <section id="page-setup" class="page-section">
         <h2 class="page-title">تنظیمات برنامه ⚙️</h2>
-
         <div class="card">
           <div class="field">
             <label>رشته تحصیلی</label>
-            <select id="field">
-              <option value="تجربی">علوم تجربی</option>
-            </select>
+            <select id="field"><option value="تجربی">علوم تجربی</option></select>
           </div>
-
           <div class="field">
             <label>پایه تحصیلی</label>
             <select id="grade">
@@ -643,108 +580,73 @@
               <option value="فارغ‌التحصیل">فارغ‌التحصیل</option>
             </select>
           </div>
-
           <div class="field">
             <label>ساعت مطالعه روزانه</label>
             <input id="dailyHours" type="number" min="1" max="18" value="6">
           </div>
-
           <div class="field">
             <label>روزهای باقی‌مانده تا هدف</label>
             <input id="daysLeft" type="number" value="244" readonly>
           </div>
-
           <button class="btn" onclick="saveSetup()">ذخیره و ساخت برنامه</button>
           <button class="btn btn-danger" onclick="clearPlan()">پاک کردن برنامه</button>
         </div>
       </section>
 
-      <!-- برنامه درسی -->
-
       <section id="page-plan" class="page-section">
         <h2 class="page-title">برنامه درسی من 📅</h2>
-
         <div class="card">
           <h3>افزودن جلسه مطالعه</h3>
-
           <div class="field">
             <label>روز</label>
             <select id="manualDay">
-              <option value="شنبه">شنبه</option>
-              <option value="یکشنبه">یکشنبه</option>
-              <option value="دوشنبه">دوشنبه</option>
-              <option value="سه‌شنبه">سه‌شنبه</option>
-              <option value="چهارشنبه">چهارشنبه</option>
-              <option value="پنجشنبه">پنجشنبه</option>
+              <option value="شنبه">شنبه</option><option value="یکشنبه">یکشنبه</option>
+              <option value="دوشنبه">دوشنبه</option><option value="سه‌شنبه">سه‌شنبه</option>
+              <option value="چهارشنبه">چهارشنبه</option><option value="پنجشنبه">پنجشنبه</option>
               <option value="جمعه">جمعه</option>
             </select>
           </div>
-
           <div class="field">
             <label>درس</label>
             <select id="manualSubject">
-              <option value="زیست‌شناسی">زیست‌شناسی</option>
-              <option value="شیمی">شیمی</option>
-              <option value="فیزیک">فیزیک</option>
-              <option value="ریاضی">ریاضی</option>
+              <option value="زیست‌شناسی">زیست‌شناسی</option><option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option><option value="ریاضی">ریاضی</option>
               <option value="زمین‌شناسی">زمین‌شناسی</option>
             </select>
           </div>
-
-          <div class="field">
-            <label>مدت مطالعه (دقیقه)</label>
-            <input id="manualMinutes" type="number" min="5" value="60">
-          </div>
-
-          <div class="field">
-            <label>مبحث</label>
-            <input id="manualChapter" type="text" placeholder="مثلاً فصل اول">
-          </div>
-
+          <div class="field"><label>مدت مطالعه (دقیقه)</label><input id="manualMinutes" type="number" min="5" value="60"></div>
+          <div class="field"><label>مبحث</label><input id="manualChapter" type="text" placeholder="مثلاً فصل اول"></div>
           <button class="btn" onclick="addManualSession()">افزودن جلسه</button>
         </div>
-
         <div id="weeklyPlan"></div>
       </section>
 
-      <!-- آزمون -->
-
       <section id="page-quiz" class="page-section">
         <h2 class="page-title">آزمون آنلاین 📝</h2>
-
         <div id="quizSetupArea" class="card">
           <div class="field">
             <label>درس</label>
             <select id="quizSubject">
-              <option value="زیست‌شناسی">زیست‌شناسی</option>
-              <option value="شیمی">شیمی</option>
-              <option value="فیزیک">فیزیک</option>
-              <option value="ریاضی">ریاضی</option>
+              <option value="زیست‌شناسی">زیست‌شناسی</option><option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option><option value="ریاضی">ریاضی</option>
               <option value="زمین‌شناسی">زمین‌شناسی</option>
             </select>
           </div>
-
           <div class="field">
             <label>تعداد سؤال</label>
             <select id="quizCount">
-              <option value="10">۱۰ سؤال</option>
-              <option value="20">۲۰ سؤال</option>
-              <option value="30">۳۰ سؤال</option>
-              <option value="50">۵۰ سؤال</option>
+              <option value="10">۱۰ سؤال</option><option value="20">۲۰ سؤال</option>
+              <option value="30">۳۰ سؤال</option><option value="50">۵۰ سؤال</option>
             </select>
           </div>
-
           <div class="field">
             <label>نوع آزمون</label>
             <select id="quizType">
-              <option value="بدون زمان">بدون زمان</option>
-              <option value="زمان‌دار">زمان‌دار</option>
+              <option value="بدون زمان">بدون زمان</option><option value="زمان‌دار">زمان‌دار</option>
             </select>
           </div>
-
           <button class="btn" onclick="createQuiz()">شروع آزمون 🚀</button>
         </div>
-
         <div id="quizArea" style="display:none">
           <div id="quizTimer">زمان آزمون</div>
           <div id="quizQuestions"></div>
@@ -753,62 +655,36 @@
         </div>
       </section>
 
-      <!-- نتیجه آزمون -->
-
       <section id="page-exam-result" class="page-section">
         <h2 class="page-title">نتیجه آزمون 🎯</h2>
-
         <div class="card" style="text-align:center">
           <h3 id="res-subject">درس</h3>
-
-          <div class="result-circle" id="res-percent-circle">
-            <span id="res-percent-text">۰٪</span>
-          </div>
-
+          <div class="result-circle" id="res-percent-circle"><span id="res-percent-text">۰٪</span></div>
           <div class="stats-grid">
-            <div class="stat-card">
-              <span>تعداد سؤال</span>
-              <strong id="res-total">۰</strong>
-            </div>
-            <div class="stat-card">
-              <span>پاسخ صحیح</span>
-              <strong id="res-correct">۰</strong>
-            </div>
-            <div class="stat-card">
-              <span>پاسخ غلط</span>
-              <strong id="res-wrong">۰</strong>
-            </div>
+            <div class="stat-card"><span>تعداد سؤال</span><strong id="res-total">۰</strong></div>
+            <div class="stat-card"><span>پاسخ صحیح</span><strong id="res-correct">۰</strong></div>
+            <div class="stat-card"><span>پاسخ غلط</span><strong id="res-wrong">۰</strong></div>
           </div>
-
           <h3>تراز تخمینی: <span id="res-traz">۰</span></h3>
           <p class="muted">تراز نمایش‌داده‌شده تخمینی است و تراز رسمی سازمان سنجش نیست.</p>
           <button class="btn" onclick="showPage('quiz')">آزمون جدید</button>
         </div>
       </section>
 
-      <!-- تحلیل عملکرد -->
-
       <section id="page-analytics" class="page-section">
         <h2 class="page-title">تحلیل عملکرد 📊</h2>
-        <div id="examList">
-          <div class="card muted">هنوز آزمونی ثبت نشده است.</div>
-        </div>
+        <div id="examList"><div class="card muted">هنوز آزمونی ثبت نشده است.</div></div>
       </section>
-
-      <!-- دفتر اشتباهات -->
 
       <section id="page-mistakes" class="page-section">
         <h2 class="page-title">دفتر اشتباهات من 📕</h2>
-
         <div class="card">
           <div class="field">
             <label>ثبت اشتباه یا نکته مهم</label>
             <textarea id="mistakeText" rows="4" placeholder="اشتباه یا نکته‌ای که باید دوباره مرور کنی..."></textarea>
           </div>
-
           <button class="btn" onclick="addMistake()">ثبت در دفتر اشتباهات</button>
         </div>
-
         <div id="mistakeList"></div>
       </section>
 
@@ -816,15 +692,12 @@
   </div>
 </div>
 
-<!-- شمارش معکوس -->
-
 <script>
 (function () {
   const targetDate = new Date("2027-06-30T20:30:00Z").getTime();
 
   function updateCountdown() {
     const distance = targetDate - Date.now();
-
     const values = {
       "countdown-days": Math.max(0, Math.floor(distance / 86400000)),
       "countdown-hours": Math.max(0, Math.floor((distance % 86400000) / 3600000)),
@@ -834,9 +707,7 @@
 
     Object.entries(values).forEach(([id, value]) => {
       const element = document.getElementById(id);
-      if (element) {
-        element.textContent = value.toLocaleString("fa-IR");
-      }
+      if (element) element.textContent = value.toLocaleString("fa-IR");
     });
   }
 
@@ -844,8 +715,6 @@
   setInterval(updateCountdown, 1000);
 })();
 </script>
-
-<!-- فایل‌های اصلی برنامه -->
 
 <script src="js/supabase-client.js"></script>
 <script src="js/storage.js"></script>
@@ -855,13 +724,10 @@
 <script src="js/profile.js"></script>
 <script src="js/app.js"></script>
 
-<!-- ورود، ثبت نام و راه‌اندازی برنامه -->
-
 <script>
 function setAuthMessage(message, isError = false) {
   const element = document.getElementById("authMessage");
   if (!element) return;
-
   element.textContent = message;
   element.style.color = isError ? "#d45d7c" : "#26866f";
 }
@@ -873,11 +739,7 @@ function showAuthMode(mode) {
 
   login.style.display = mode === "login" ? "block" : "none";
   register.style.display = mode === "register" ? "block" : "none";
-
-  title.textContent = mode === "login"
-    ? "ورود به حساب کاربری"
-    : "ساخت حساب رایگان";
-
+  title.textContent = mode === "login" ? "ورود به حساب کاربری" : "ساخت حساب رایگان";
   setAuthMessage("");
 }
 
@@ -893,7 +755,6 @@ document.getElementById("showLogin").addEventListener("click", event => {
 
 document.getElementById("loginForm").addEventListener("submit", async event => {
   event.preventDefault();
-
   const button = event.currentTarget.querySelector("button");
   button.disabled = true;
   button.textContent = "در حال ورود...";
@@ -901,16 +762,9 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
   try {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
-
-    const { error } = await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
-
+    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
     if (error) throw error;
-
     window.location.reload();
-
   } catch (error) {
     setAuthMessage(error.message, true);
   } finally {
@@ -921,7 +775,6 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
 
 document.getElementById("registerForm").addEventListener("submit", async event => {
   event.preventDefault();
-
   const button = event.currentTarget.querySelector("button");
   button.disabled = true;
   button.textContent = "در حال ساخت حساب...";
@@ -931,13 +784,8 @@ document.getElementById("registerForm").addEventListener("submit", async event =
     const password = document.getElementById("registerPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
 
-    if (password.length < 8) {
-      throw new Error("رمز عبور باید حداقل ۸ کاراکتر باشد.");
-    }
-
-    if (password !== confirmPassword) {
-      throw new Error("تکرار رمز عبور با رمز اصلی یکسان نیست.");
-    }
+    if (password.length < 8) throw new Error("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+    if (password !== confirmPassword) throw new Error("تکرار رمز عبور با رمز اصلی یکسان نیست.");
 
     const { data, error } = await supabaseClient.auth.signUp({
       email,
@@ -956,7 +804,6 @@ document.getElementById("registerForm").addEventListener("submit", async event =
       showAuthMode("login");
       setAuthMessage("ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ایمیلت را بررسی کن.");
     }
-
   } catch (error) {
     setAuthMessage(error.message, true);
   } finally {
@@ -965,45 +812,30 @@ document.getElementById("registerForm").addEventListener("submit", async event =
   }
 });
 
-/* راه‌اندازی برنامه پس از بررسی نشست */
-
 async function initializeAuthentication() {
   try {
     const { data, error } = await supabaseClient.auth.getSession();
-
     if (error) throw error;
 
     const user = data.session?.user || null;
-
     const authPage = document.getElementById("authPage");
     const appContent = document.getElementById("appContent");
 
     if (user) {
       authPage.style.display = "none";
       appContent.style.display = "block";
-
       document.getElementById("userEmail").textContent = user.email || "";
 
-      if (typeof init === "function") {
-        await init();
-      }
-
-      if (typeof loadProfile === "function") {
-        await loadProfile();
-      }
-
+      if (typeof init === "function") await init();
+      if (typeof loadProfile === "function") await loadProfile();
     } else {
       appContent.style.display = "none";
       authPage.style.display = "flex";
     }
-
   } catch (error) {
     console.error("Auth initialization error:", error);
     document.getElementById("authPage").style.display = "flex";
-    setAuthMessage(
-      "اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.",
-      true
-    );
+    setAuthMessage("اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.", true);
   }
 }
 
