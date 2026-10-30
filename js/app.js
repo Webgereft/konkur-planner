@@ -1,231 +1,584 @@
+
+"use strict";
+
+/* =========================================
+   KONKORYAR - Main Application
+========================================= */
+
 let CONFIG = null;
 let PLAN = [];
 let EXAMS = [];
 let MISTAKES = [];
 
+let appReady = false;
+
+const $ = id => document.getElementById(id);
+
+const faNumber = value =>
+  Number(value || 0).toLocaleString("fa-IR");
+
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[char]);
+}
+
+/* =========================================
+   INITIALIZATION
+========================================= */
+
 async function init() {
-  CONFIG = await DB.get('config', null);
-  PLAN = await DB.get('plan', []);
-  EXAMS = await DB.get('exams', []);
-  MISTAKES = await DB.get('mistakes', []);
-
-  if (!CONFIG) {
-    showPage('setup', document.querySelector('nav button[data-target="setup"]'));
-  } else {
-    showPage('dashboard', document.querySelector('nav button[data-target="dashboard"]'));
-  }
-  startCountdown();
-}
-
-function showPage(name, btn = null) {
-  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
-  const target = document.getElementById('page-' + name);
-  if (target) target.classList.remove('hidden');
-  
-  if (btn) {
-    document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-  }
-
-  if (name === 'dashboard') renderDashboard();
-  if (name === 'plan') renderPlan();
-  if (name === 'quiz') { 
-    document.getElementById('quizArea').classList.add('hidden');
-    document.getElementById('quizSetupArea').classList.remove('hidden');
-    toggleQuizType(); loadChapters(); 
-  }
-  if (name === 'analytics') renderExams();
-  if (name === 'mistakes') renderMistakes();
-}
-
-function startCountdown() {
-  const targetDate = new Date('2025-06-30T08:00:00').getTime(); 
-  const timer = setInterval(() => {
-    const now = new Date().getTime();
-    const distance = targetDate - now;
-    if (distance < 0) {
-      clearInterval(timer);
-      document.getElementById('countdown-timer').innerHTML = "<h3 style='color:var(--success)'>زمان کنکور فرا رسیده است! موفق باشید</h3>";
-      return;
+  try {
+    if (typeof DB === "undefined") {
+      throw new Error("فایل storage.js بارگذاری نشده است.");
     }
-    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-    document.getElementById('countdown-timer').innerHTML = `
-      <div class="cd-box"><span>${days}</span><small>روز</small></div>
-      <div class="cd-box"><span>${hours}</span><small>ساعت</small></div>
-      <div class="cd-box"><span>${minutes}</span><small>دقیقه</small></div>
-      <div class="cd-box"><span>${seconds}</span><small>ثانیه</small></div>
-    `;
-  }, 1000);
-}
 
-async function clearPlan() {
-  if(confirm("آیا مطمئن هستید؟ تمام برنامه‌ها پاک می‌شوند.")) {
-    PLAN = [];
-    await DB.set('plan', PLAN); 
+    const results = await Promise.all([
+      DB.get("config", null),
+      DB.get("plan", []),
+      DB.get("exams", []),
+      DB.get("mistakes", [])
+    ]);
+
+    CONFIG = results[0];
+    PLAN = Array.isArray(results[1]) ? results[1] : [];
+    EXAMS = Array.isArray(results[2]) ? results[2] : [];
+    MISTAKES = Array.isArray(results[3]) ? results[3] : [];
+
+    appReady = true;
+
+    if (CONFIG) {
+      showPage("dashboard");
+    } else {
+      showPage("setup");
+    }
+
+    updateDashboard();
     renderPlan();
-    renderDashboard();
+    renderExams();
+    renderMistakes();
+
+  } catch (error) {
+    console.error("Initialization error:", error);
+    alert("خطا در راه‌اندازی سایت: " + error.message);
   }
 }
+
+/* =========================================
+   PAGE NAVIGATION
+========================================= */
+
+function showPage(name, button = null) {
+  document.querySelectorAll(".page-section").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  const target = $("page-" + name);
+
+  if (target) {
+    target.classList.add("active");
+  }
+
+  document.querySelectorAll("nav button").forEach(btn => {
+    btn.classList.remove("active");
+  });
+
+  if (button) {
+    button.classList.add("active");
+  } else {
+    const navButton = document.querySelector(
+      `nav button[onclick*="'${name}'"]`
+    );
+
+    if (navButton) navButton.classList.add("active");
+  }
+
+  if (name === "dashboard") updateDashboard();
+  if (name === "plan") renderPlan();
+  if (name === "analytics") renderExams();
+  if (name === "mistakes") renderMistakes();
+
+  if (name === "quiz") {
+    const setup = $("quizSetupArea");
+    const area = $("quizArea");
+
+    if (setup) setup.style.display = "block";
+    if (area) area.style.display = "none";
+
+    if (typeof loadChapters === "function") {
+      loadChapters();
+    }
+  }
+}
+
+/* =========================================
+   SETUP
+========================================= */
 
 async function saveSetup() {
-  const daysLeft = +document.getElementById('daysLeft').value;
-  const dailyHours = +document.getElementById('dailyHours').value;
-  if (!daysLeft || !dailyHours) return alert("مقادیر را وارد کنید");
-  
-  CONFIG = { field: 'تجربی', daysLeft, dailyHours };
-  await DB.set('config', CONFIG); 
-  
-  if (typeof generatePlan === 'function') {
-    PLAN = generatePlan(CONFIG);
-    await DB.set('plan', PLAN); 
-    showPage('dashboard', document.querySelector('nav button[data-target="dashboard"]'));
-  } else {
-    alert("خطا در ساخت برنامه.");
+  const dailyHours = Number($("dailyHours")?.value);
+  const daysLeft = Number($("daysLeft")?.value);
+
+  if (!dailyHours || dailyHours < 1 || dailyHours > 16) {
+    alert("ساعت مطالعه روزانه باید بین ۱ تا ۱۶ باشد.");
+    return;
   }
+
+  if (!daysLeft || daysLeft < 1) {
+    alert("تعداد روزهای باقی‌مانده معتبر نیست.");
+    return;
+  }
+
+  CONFIG = {
+    field: $("field")?.value || "تجربی",
+    grade: $("grade")?.value || "دوازدهم",
+    dailyHours,
+    daysLeft,
+    updatedAt: new Date().toISOString()
+  };
+
+  PLAN = generatePlan(CONFIG);
+
+  await DB.set("config", CONFIG);
+  await DB.set("plan", PLAN);
+
+  updateDashboard();
+  renderPlan();
+
+  alert("تنظیمات ذخیره و برنامه اولیه ساخته شد.");
+
+  showPage("dashboard");
+}
+
+/* =========================================
+   PLAN MANAGEMENT
+========================================= */
+
+function getNextDayNumber() {
+  if (!PLAN.length) return 1;
+
+  return Math.max(...PLAN.map(s => Number(s.day) || 0)) + 1;
 }
 
 async function addManualSession() {
-  const day = +document.getElementById('manualDay').value;
-  const subject = document.getElementById('manualSubject').value;
-  const chapter = document.getElementById('manualChapter').value.trim();
-  const minutes = +document.getElementById('manualMinutes').value;
-  if (!day || !chapter || !minutes) return alert("مقادیر را کامل کنید.");
-  
-  PLAN.push({ id: 'manual_' + Date.now(), day, subject, chapter, minutes, type: 'manual', done: false });
-  await DB.set('plan', PLAN); 
-  document.getElementById('manualChapter').value = '';
+  const dayValue = $("manualDay")?.value;
+  const subject = $("manualSubject")?.value;
+  const chapter = $("manualChapter")?.value.trim();
+  const minutes = Number($("manualMinutes")?.value);
+
+  if (!chapter || !minutes || minutes < 5) {
+    alert("عنوان مبحث و زمان معتبر را وارد کن.");
+    return;
+  }
+
+  let day;
+
+  const weekdays = [
+    "شنبه", "یکشنبه", "دوشنبه",
+    "سه‌شنبه", "چهارشنبه", "پنجشنبه", "جمعه"
+  ];
+
+  if (weekdays.includes(dayValue)) {
+    day = getNextDayNumber();
+  } else {
+    day = Number(dayValue) || getNextDayNumber();
+  }
+
+  const session = {
+    id: "manual_" + Date.now(),
+    day,
+    weekday: weekdays[(day - 1) % 7],
+    subject,
+    chapter,
+    minutes,
+    type: "manual",
+    done: false,
+    createdAt: new Date().toISOString()
+  };
+
+  PLAN.push(session);
+
+  await DB.set("plan", PLAN);
+
+  if ($("manualChapter")) {
+    $("manualChapter").value = "";
+  }
+
   renderPlan();
+  updateDashboard();
 }
 
 async function deleteSession(id) {
-  if(confirm("حذف شود؟")) {
-    PLAN = PLAN.filter(s => s.id !== id);
-    await DB.set('plan', PLAN); 
-    renderPlan();
-    renderDashboard();
-  }
-}
+  if (!confirm("این جلسه از برنامه حذف شود؟")) return;
 
-function renderDashboard() {
-  if (!CONFIG) return;
-  const pending = PLAN.filter(s => !s.done).sort((a, b) => a.day - b.day);
-  const done = PLAN.filter(s => s.done).length;
-  const doneMin = PLAN.filter(s => s.done).reduce((sum, s) => sum + s.minutes, 0);
+  PLAN = PLAN.filter(session => session.id !== id);
 
-  document.getElementById('summary').innerHTML = `
-    <div class="card">📖 رشته: ${CONFIG.field}</div>
-    <div class="card">✅ انجام شده: ${done} از ${PLAN.length}</div>
-    <div class="card">⏱️ مطالعه: ${Math.round(doneMin/60)} ساعت</div>
-  `;
+  await DB.set("plan", PLAN);
 
-  const panel = document.getElementById('todayTasks');
-  if (pending.length === 0) {
-    panel.innerHTML = '<div class="card" style="border-color:#10b981; text-align:center;">🎉 برنامه تمام شد!</div>';
-    return;
-  }
-
-  panel.innerHTML = pending.slice(0, 15).map(s => `
-    <label class="session-item">
-      <input type="checkbox" onchange="toggleSession('${s.id}')">
-      <div class="session-info">
-        <strong>${s.subject} ${s.type==='review'?'(مرور)':''}</strong> - ${s.chapter}
-        <small>📅 روز ${s.day} | ⏱️ ${s.minutes} دقیقه</small>
-      </div>
-    </label>
-  `).join('');
+  renderPlan();
+  updateDashboard();
 }
 
 async function toggleSession(id) {
-  const s = PLAN.find(x => x.id === id);
-  if (s) { 
-    s.done = !s.done; 
-    await DB.set('plan', PLAN); 
-    renderDashboard(); 
-  }
+  const session = PLAN.find(item => item.id === id);
+
+  if (!session) return;
+
+  session.done = !session.done;
+  session.completedAt = session.done
+    ? new Date().toISOString()
+    : null;
+
+  await DB.set("plan", PLAN);
+
+  renderPlan();
+  updateDashboard();
 }
 
-function renderPlan() {
-  const byDay = {};
-  PLAN.forEach(p => { if (!byDay[p.day]) byDay[p.day] = []; byDay[p.day].push(p); });
-  const sortedDays = Object.keys(byDay).sort((a, b) => a - b);
-  const el = document.getElementById('weeklyPlan');
-  
-  if (sortedDays.length === 0) {
-    el.innerHTML = '<p style="color:#a1a1aa; text-align:center;">برنامه‌ای وجود ندارد.</p>';
+async function clearPlan() {
+  if (!confirm("تمام جلسات برنامه پاک شوند؟")) return;
+
+  PLAN = [];
+
+  await DB.set("plan", PLAN);
+
+  renderPlan();
+  updateDashboard();
+}
+
+/* =========================================
+   DASHBOARD
+========================================= */
+
+function updateDashboard() {
+  if (!appReady) return;
+
+  const totalSessions = PLAN.length;
+  const completed = PLAN.filter(s => s.done).length;
+
+  const completedMinutes = PLAN
+    .filter(s => s.done)
+    .reduce((sum, s) => sum + Number(s.minutes || 0), 0);
+
+  const studyHours = (completedMinutes / 60).toFixed(1);
+
+  if ($("totalStudyHours")) {
+    $("totalStudyHours").innerText = faNumber(studyHours);
+  }
+
+  if ($("totalSessions")) {
+    $("totalSessions").innerText = faNumber(completed);
+  }
+
+  if ($("totalExams")) {
+    $("totalExams").innerText = faNumber(EXAMS.length);
+  }
+
+  if ($("summary")) {
+    $("summary").innerHTML = `
+      <div class="card">
+        <span>رشته تحصیلی</span>
+        <strong>${escapeHTML(CONFIG?.field || "تجربی")}</strong>
+      </div>
+
+      <div class="card">
+        <span>جلسات انجام‌شده</span>
+        <strong>${faNumber(completed)} از ${faNumber(totalSessions)}</strong>
+      </div>
+
+      <div class="card">
+        <span>میزان پیشرفت</span>
+        <strong>
+          ${totalSessions
+            ? faNumber(Math.round(completed / totalSessions * 100))
+            : "۰"}٪
+        </strong>
+      </div>
+    `;
+  }
+
+  renderTodayTasks();
+}
+
+function renderTodayTasks() {
+  const panel = $("todayTasks");
+  if (!panel) return;
+
+  if (!PLAN.length) {
+    panel.innerHTML = `
+      <div class="card">
+        هنوز برنامه‌ای ساخته نشده است.
+        <button onclick="showPage('setup')">ساخت برنامه</button>
+      </div>
+    `;
     return;
   }
 
-  let html = '';
-  sortedDays.forEach(day => {
-    html += `<div class="card"><h4>📅 روز ${day}</h4><ul>`;
-    byDay[day].forEach(t => {
-      const deleteBtn = `<button onclick="deleteSession('${t.id}')" style="background:transparent; border:none; color:#f43f5e; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>`;
-      html += `<li style="display:flex; justify-content:space-between; align-items:center; opacity:${t.done?'0.5':'1'}; text-decoration:${t.done?'line-through':'none'};">
-        <span>${t.done ? '✅' : '⬜'} <b>${t.subject}</b> - ${t.chapter} (${t.minutes}د)</span>
-        ${deleteBtn}
-      </li>`;
-    });
-    html += `</ul></div>`;
-  });
-  el.innerHTML = html;
+  const pending = PLAN
+    .filter(session => !session.done)
+    .sort((a, b) => a.day - b.day)
+    .slice(0, 10);
+
+  if (!pending.length) {
+    panel.innerHTML = `
+      <div class="card">
+        🎉 همه جلسات برنامه انجام شده‌اند!
+      </div>
+    `;
+    return;
+  }
+
+  panel.innerHTML = pending.map(session => `
+    <label class="session-item">
+      <input
+        type="checkbox"
+        onchange="toggleSession('${session.id}')"
+      >
+
+      <div class="session-info">
+        <strong>${escapeHTML(session.subject)}</strong>
+        - ${escapeHTML(session.chapter)}
+
+        <small>
+          روز ${faNumber(session.day)}
+          | ${faNumber(session.minutes)} دقیقه
+          | ${session.type === "review" ? "مرور" : "مطالعه"}
+        </small>
+      </div>
+    </label>
+  `).join("");
 }
 
+/* =========================================
+   PLAN RENDERING
+========================================= */
+
+function renderPlan() {
+  const container = $("weeklyPlan");
+  if (!container) return;
+
+  if (!PLAN.length) {
+    container.innerHTML = `
+      <p style="text-align:center;color:var(--muted)">
+        هنوز برنامه‌ای وجود ندارد.
+      </p>
+    `;
+    return;
+  }
+
+  const groups = {};
+
+  PLAN.forEach(session => {
+    const day = Number(session.day) || 1;
+
+    if (!groups[day]) groups[day] = [];
+
+    groups[day].push(session);
+  });
+
+  container.innerHTML = Object.keys(groups)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .map(day => {
+      const sessions = groups[day];
+
+      const minutes = sessions.reduce(
+        (sum, session) => sum + Number(session.minutes || 0),
+        0
+      );
+
+      return `
+        <div class="card">
+          <h4>📅 روز ${faNumber(day)}</h4>
+
+          <p>
+            مجموع زمان: ${faNumber(minutes)} دقیقه
+          </p>
+
+          <ul>
+            ${sessions.map(session => `
+              <li class="session-item"
+                style="opacity:${session.done ? ".55" : "1"}">
+
+                <div class="session-info">
+                  <strong>${escapeHTML(session.subject)}</strong>
+                  - ${escapeHTML(session.chapter)}
+
+                  <small>
+                    ${faNumber(session.minutes)} دقیقه
+                    | ${session.type === "review" ? "مرور" : "مطالعه"}
+                  </small>
+                </div>
+
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input
+                    type="checkbox"
+                    ${session.done ? "checked" : ""}
+                    onchange="toggleSession('${session.id}')"
+                  >
+
+                  <button
+                    type="button"
+                    onclick="deleteSession('${session.id}')"
+                    aria-label="حذف جلسه"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              </li>
+            `).join("")}
+          </ul>
+        </div>
+      `;
+    })
+    .join("");
+}
+
+/* =========================================
+   QUIZ SETUP
+========================================= */
+
 function toggleQuizType() {
-  const type = document.getElementById('quizType').value;
-  document.getElementById('customOptions').style.display = type === 'custom' ? 'block' : 'none';
+  // تنظیمات نوع آزمون در موتور آزمون مدیریت می‌شود.
 }
 
 function loadChapters() {
-  const subject = document.getElementById('quizSubject').value;
-  const grade = document.getElementById('quizGrade').value;
-  const chapters = (typeof QUESTION_BANK !== 'undefined' && QUESTION_BANK[subject] && QUESTION_BANK[subject][grade]) ? QUESTION_BANK[subject][grade] : {};
-  
-  const list = document.getElementById('chapterList');
-  const keys = Object.keys(chapters);
-  if (keys.length === 0) { list.innerHTML = '<p style="color:#a1a1aa; font-size:0.8rem;">سوالی نیست.</p>'; return; }
-  list.innerHTML = keys.map(ch => `<label><input type="checkbox" value="${ch}" checked> ${ch}</label>`).join('');
-}
+  const list = $("chapterList");
 
-function createQuiz() {
-  const subject = document.getElementById('quizSubject').value;
-  const type = document.getElementById('quizType').value;
-  const count = +document.getElementById('quizCount').value;
-  
-  if (type === 'custom') {
-    const grade = document.getElementById('quizGrade').value;
-    const chs = [...document.querySelectorAll('#chapterList input:checked')].map(i => i.value);
-    if (chs.length === 0) return alert("یک فصل انتخاب کنید");
-    if (typeof startCustomQuiz === 'function') startCustomQuiz(subject, grade, chs, count);
-  } else {
-    if (typeof startComprehensiveQuiz === 'function') startComprehensiveQuiz(subject, count);
+  if (!list) return;
+
+  /*
+   * جدول فعلی questions_bank ستون فصل و پایه ندارد.
+   * بنابراین انتخاب فصل تا زمان اصلاح دیتابیس غیرفعال می‌ماند.
+   */
+  if (list.tagName === "TEXTAREA") {
+    list.placeholder =
+      "فعلاً آزمون از کل بانک سؤال درس انتخاب‌شده ساخته می‌شود.";
+    list.disabled = true;
   }
 }
 
-function renderExams() {
-  const el = document.getElementById('examList');
-  if (EXAMS.length === 0) { el.innerHTML = '<p>خالی است.</p>'; return; }
-  el.innerHTML = EXAMS.slice().reverse().map(e => `
-    <div class="session-item" style="cursor:default;">
-      <div class="session-info"><strong>${e.subject}</strong>: ${e.percent}% (تراز: ${e.traz})</div>
-    </div>`).join('');
+async function createQuiz() {
+  const subject = $("quizSubject")?.value || "زیست‌شناسی";
+  const count = Number($("quizCount")?.value) || 10;
+  const type = $("quizType")?.value || "آموزشی";
+
+  await createQuizFromDatabase(subject, count, type);
 }
 
+/* =========================================
+   EXAM ANALYTICS
+========================================= */
+
+function renderExams() {
+  const container = $("examList");
+  if (!container) return;
+
+  if (!EXAMS.length) {
+    container.innerHTML = "<p>هنوز آزمونی ثبت نشده است.</p>";
+    return;
+  }
+
+  container.innerHTML = [...EXAMS]
+    .reverse()
+    .map(exam => `
+      <div class="session-item">
+        <div class="session-info">
+          <strong>${escapeHTML(exam.subject)}</strong>
+
+          <small>
+            درصد: ${faNumber(exam.percent)}٪
+            | درست: ${faNumber(exam.correct)}
+            | غلط: ${faNumber(exam.wrong)}
+            | نزده: ${faNumber(exam.unanswered)}
+          </small>
+
+          <small>
+            تراز تخمینی: ${faNumber(exam.traz)}
+          </small>
+        </div>
+      </div>
+    `)
+    .join("");
+}
+
+/* =========================================
+   MISTAKES
+========================================= */
+
 async function addMistake() {
-  const txt = document.getElementById('mistakeText').value.trim();
-  if (!txt) return;
-  MISTAKES.push({ text: txt });
-  await DB.set('mistakes', MISTAKES); 
-  document.getElementById('mistakeText').value = '';
+  const input = $("mistakeText");
+  const text = input?.value.trim();
+
+  if (!text) {
+    alert("متن اشتباه یا نکته را وارد کن.");
+    return;
+  }
+
+  MISTAKES.push({
+    id: "mistake_" + Date.now(),
+    text,
+    createdAt: new Date().toISOString()
+  });
+
+  await DB.set("mistakes", MISTAKES);
+
+  input.value = "";
+
+  renderMistakes();
+}
+
+async function deleteMistake(id) {
+  if (!confirm("این مورد حذف شود؟")) return;
+
+  MISTAKES = MISTAKES.filter(item => item.id !== id);
+
+  await DB.set("mistakes", MISTAKES);
+
   renderMistakes();
 }
 
 function renderMistakes() {
-  const el = document.getElementById('mistakeList');
-  if (MISTAKES.length === 0) { el.innerHTML = '<p>خالی است.</p>'; return; }
-  el.innerHTML = MISTAKES.slice().reverse().map(m => `<li>${m.text}</li>`).join('');
+  const container = $("mistakeList");
+  if (!container) return;
+
+  if (!MISTAKES.length) {
+    container.innerHTML = "<p>هنوز اشتباهی ثبت نشده است.</p>";
+    return;
+  }
+
+  container.innerHTML = [...MISTAKES]
+    .reverse()
+    .map(item => `
+      <li class="session-item">
+        <span>${escapeHTML(item.text)}</span>
+
+        <button
+          type="button"
+          onclick="deleteMistake('${item.id}')"
+          aria-label="حذف اشتباه"
+        >
+          🗑️
+        </button>
+      </li>
+    `)
+    .join("");
 }
 
-init();
+/* =========================================
+   GLOBAL ERROR HANDLING
+========================================= */
+
+window.addEventListener("error", event => {
+  console.error("Application error:", event.error);
+});
+
+/* =========================================
+   START APP
+========================================= */
+
+document.addEventListener("DOMContentLoaded", init);
