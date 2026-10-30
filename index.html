@@ -13,7 +13,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <link rel="stylesheet" href="css/style.css">
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -32,9 +31,7 @@
       --radius: 20px;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -44,19 +41,11 @@
       min-height: 100vh;
     }
 
-    button,input,select,textarea {
-      font-family: inherit;
-    }
+    button,input,select,textarea { font-family: inherit; }
+    button { cursor: pointer; }
+    .hidden { display: none !important; }
 
-    button {
-      cursor: pointer;
-    }
-
-    .hidden {
-      display: none !important;
-    }
-
-    /* Authentication */
+    /* ورود و ثبت نام */
 
     #authPage {
       min-height: 100vh;
@@ -89,14 +78,8 @@
       font-size: 32px;
     }
 
-    .auth-card h1 {
-      color: var(--primary);
-      margin: 8px 0;
-    }
-
-    .auth-card p {
-      color: var(--muted);
-    }
+    .auth-card h1 { color: var(--primary); margin: 8px 0; }
+    .auth-card p { color: var(--muted); }
 
     .auth-input {
       width: 100%;
@@ -126,9 +109,7 @@
       font-size: 15px;
     }
 
-    .auth-button:hover {
-      background: var(--primary-dark);
-    }
+    .auth-button:hover { background: var(--primary-dark); }
 
     .auth-link {
       color: var(--primary);
@@ -143,7 +124,7 @@
       margin-top: 12px;
     }
 
-    /* App */
+    /* بدنه برنامه */
 
     #appContent {
       display: none;
@@ -237,19 +218,14 @@
       font-weight: 700;
     }
 
-    .main-content {
-      flex: 1;
-      min-width: 0;
-    }
+    .main-content { flex: 1; min-width: 0; }
 
     .page-section {
       display: none;
       animation: fadeIn .3s ease;
     }
 
-    .page-section.active {
-      display: block;
-    }
+    .page-section.active { display: block; }
 
     @keyframes fadeIn {
       from {opacity:0;transform:translateY(8px)}
@@ -271,10 +247,7 @@
       margin: 5px 0 20px;
     }
 
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-    }
+    .muted { color: var(--muted); font-size: 13px; }
 
     .btn {
       border: 0;
@@ -283,23 +256,16 @@
       color: white;
       background: var(--primary);
       font-weight: 700;
+      margin: 4px 2px;
     }
 
-    .btn-secondary {
-      background: var(--secondary);
-    }
+    .btn:hover { background: var(--primary-dark); }
+    .btn-secondary { background: var(--secondary); }
+    .btn-danger { background: #e87991; }
 
-    .btn-danger {
-      background: #e87991;
-    }
+    input,select,textarea { max-width: 100%; }
 
-    input,select,textarea {
-      max-width: 100%;
-    }
-
-    .field {
-      margin: 12px 0;
-    }
+    .field { margin: 12px 0; }
 
     .field label {
       display: block;
@@ -321,9 +287,7 @@
 
     .field input:focus,
     .field select:focus,
-    .field textarea:focus {
-      border-color: var(--primary);
-    }
+    .field textarea:focus { border-color: var(--primary); }
 
     .stats-grid {
       display: grid;
@@ -369,10 +333,7 @@
       font-weight: 800;
     }
 
-    .countdown-label {
-      font-size: 11px;
-      opacity: .85;
-    }
+    .countdown-label { font-size: 11px; opacity: .85; }
 
     .quiz-question {
       padding: 20px;
@@ -393,13 +354,8 @@
       cursor: pointer;
     }
 
-    .quiz-option:hover {
-      background: #eee8ff;
-    }
-
-    .quiz-option input {
-      accent-color: var(--primary);
-    }
+    .quiz-option:hover { background: #eee8ff; }
+    .quiz-option input { accent-color: var(--primary); }
 
     .result-circle {
       width: 140px;
@@ -460,10 +416,7 @@
     }
 
     @media(max-width:850px) {
-      .app-layout {
-        display: block;
-        padding: 12px;
-      }
+      .app-layout { display: block; padding: 12px; }
 
       .sidebar {
         position: static;
@@ -474,36 +427,16 @@
         margin-bottom: 15px;
       }
 
-      .nav-btn {
-        width: auto;
-        min-width: max-content;
-      }
+      .nav-btn { width: auto; min-width: max-content; }
     }
 
     @media(max-width:550px) {
-      .stats-grid {
-        grid-template-columns: repeat(2,minmax(0,1fr));
-      }
-
-      .topbar {
-        padding: 10px 12px;
-      }
-
-      .brand {
-        font-size: 18px;
-      }
-
-      #userEmail {
-        max-width: 105px;
-      }
-
-      .auth-card {
-        padding: 24px 18px;
-      }
-
-      .countdown-number {
-        font-size: 20px;
-      }
+      .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .topbar { padding: 10px 12px; }
+      .brand { font-size: 18px; }
+      #userEmail { max-width: 105px; }
+      .auth-card { padding: 24px 18px; }
+      .countdown-number { font-size: 20px; }
     }
   </style>
 </head>
@@ -577,6 +510,7 @@
 
     <aside class="sidebar">
       <button class="nav-btn active" onclick="showPage('dashboard')">🏠 داشبورد</button>
+      <button class="nav-btn" onclick="showPage('profile')">👤 پروفایل من</button>
       <button class="nav-btn" onclick="showPage('setup')">⚙️ تنظیمات</button>
       <button class="nav-btn" onclick="showPage('plan')">📅 برنامه درسی</button>
       <button class="nav-btn" onclick="showPage('quiz')">📝 آزمون</button>
@@ -642,6 +576,50 @@
           <div id="todayTasks">
             <p class="muted">هنوز برنامه‌ای ثبت نشده است.</p>
           </div>
+        </div>
+      </section>
+
+      <!-- پروفایل دانش‌آموز -->
+
+      <section id="page-profile" class="page-section">
+        <h2 class="page-title">پروفایل من 👤</h2>
+
+        <div class="card">
+          <h3>اطلاعات شخصی</h3>
+
+          <p class="muted">
+            نام و نام خانوادگی خودت را وارد کن.
+            این اطلاعات برای نمایش در کارنامه و فایل‌های PDF استفاده خواهد شد.
+            تکمیل این بخش اختیاری است و هر زمان بخواهی می‌توانی آن را ویرایش کنی.
+          </p>
+
+          <div class="field">
+            <label for="profileFirstName">نام</label>
+            <input
+              type="text"
+              id="profileFirstName"
+              placeholder="مثلاً علی"
+              maxlength="50"
+              autocomplete="given-name"
+            >
+          </div>
+
+          <div class="field">
+            <label for="profileLastName">نام خانوادگی</label>
+            <input
+              type="text"
+              id="profileLastName"
+              placeholder="مثلاً رضایی"
+              maxlength="70"
+              autocomplete="family-name"
+            >
+          </div>
+
+          <button class="btn" onclick="saveProfile()">
+            ذخیره اطلاعات
+          </button>
+
+          <p id="profileMessage" class="muted" aria-live="polite"></p>
         </div>
       </section>
 
@@ -842,7 +820,6 @@
 
 <script>
 (function () {
-  // زمان هدف: اول تیر ۱۴۰۶، ساعت ۰۰:۰۰ به وقت ایران
   const targetDate = new Date("2027-06-30T20:30:00Z").getTime();
 
   function updateCountdown() {
@@ -868,18 +845,19 @@
 })();
 </script>
 
-<!-- اسکریپت‌های اصلی -->
+<!-- فایل‌های اصلی برنامه -->
 
 <script src="js/supabase-client.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/planner.js"></script>
 <script src="js/quiz-engine.js"></script>
 <script src="js/auth.js"></script>
+<script src="js/profile.js"></script>
 <script src="js/app.js"></script>
 
-<script>
-/* کنترل فرم‌های ورود و ثبت‌نام */
+<!-- ورود، ثبت نام و راه‌اندازی برنامه -->
 
+<script>
 function setAuthMessage(message, isError = false) {
   const element = document.getElementById("authMessage");
   if (!element) return;
@@ -975,8 +953,8 @@ document.getElementById("registerForm").addEventListener("submit", async event =
       setAuthMessage("حساب ساخته شد؛ در حال ورود...");
       window.location.reload();
     } else {
-      setAuthMessage("ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ایمیلت را بررسی کن.");
       showAuthMode("login");
+      setAuthMessage("ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ایمیلت را بررسی کن.");
     }
 
   } catch (error) {
@@ -987,7 +965,7 @@ document.getElementById("registerForm").addEventListener("submit", async event =
   }
 });
 
-/* بررسی نشست کاربر */
+/* راه‌اندازی برنامه پس از بررسی نشست */
 
 async function initializeAuthentication() {
   try {
@@ -1010,6 +988,10 @@ async function initializeAuthentication() {
         await init();
       }
 
+      if (typeof loadProfile === "function") {
+        await loadProfile();
+      }
+
     } else {
       appContent.style.display = "none";
       authPage.style.display = "flex";
@@ -1018,7 +1000,10 @@ async function initializeAuthentication() {
   } catch (error) {
     console.error("Auth initialization error:", error);
     document.getElementById("authPage").style.display = "flex";
-    setAuthMessage("اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.", true);
+    setAuthMessage(
+      "اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.",
+      true
+    );
   }
 }
 
