@@ -429,6 +429,86 @@
       font-weight: 800;
     }
 
+    /* آزمون جامع */
+
+    .subject-pick {
+      display: grid;
+      grid-template-columns: 1fr 120px;
+      align-items: center;
+      gap: 12px;
+      background: #fff;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px;
+      margin: 10px 0;
+    }
+
+    .subject-pick label {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .subject-pick input[type="checkbox"] {
+      accent-color: var(--primary);
+      width: 18px;
+      height: 18px;
+    }
+
+    .subject-pick input[type="number"] {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid #e6e1ef;
+      border-radius: 10px;
+    }
+
+    .quiz-subject-heading {
+      margin: 25px 0 10px;
+      padding: 12px 15px;
+      color: var(--primary-dark);
+      background: #eee8ff;
+      border-radius: 12px;
+    }
+
+    .quiz-question h4 {
+      color: var(--primary-dark);
+    }
+
+    .quiz-question p {
+      line-height: 2;
+    }
+
+    .quiz-option span {
+      line-height: 1.9;
+    }
+
+    .result-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 12px;
+    }
+
+    .result-detail-grid .stat-card {
+      padding: 15px;
+    }
+
+    .analytics-bar {
+      height: 12px;
+      background: #eeeaf5;
+      border-radius: 20px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .analytics-bar span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg,#8061ce,#19b8a7);
+      border-radius: 20px;
+    }
+
     @media(max-width:850px) {
       .app-layout { display: block; padding: 12px; }
 
@@ -446,12 +526,14 @@
 
     @media(max-width:550px) {
       .stats-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+      .result-detail-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
       .topbar { padding: 10px 12px; }
       .brand { font-size: 18px; }
       .brand img { width: 40px; height: 40px; }
       #userEmail { max-width: 105px; }
       .auth-card { padding: 24px 18px; }
       .countdown-number { font-size: 20px; }
+      .subject-pick { grid-template-columns: 1fr 95px; }
     }
   </style>
 </head>
@@ -463,6 +545,7 @@
     <div class="auth-logo">
       <img src="logo.png" alt="لوگوی کنکوریار">
     </div>
+
     <h1>کنکوریار</h1>
     <p>همراه تو تا موفقیت در کنکور ۱۴۰۶</p>
 
@@ -514,12 +597,14 @@
 
     <main class="main-content">
 
+      <!-- داشبورد -->
       <section id="page-dashboard" class="page-section active">
         <h2 class="page-title">داشبورد من 🌸</h2>
 
         <div class="countdown-card">
           <h3>تا کنکور ۱۴۰۶ چقدر باقی مانده؟</h3>
           <p>هر روز یک قدم به هدفت نزدیک‌تر شو.</p>
+
           <div class="countdown-grid">
             <div><div class="countdown-number" id="countdown-days">---</div><div class="countdown-label">روز</div></div>
             <div><div class="countdown-number" id="countdown-hours">--</div><div class="countdown-label">ساعت</div></div>
@@ -545,8 +630,10 @@
         </div>
       </section>
 
+      <!-- پروفایل -->
       <section id="page-profile" class="page-section">
         <h2 class="page-title">پروفایل من 👤</h2>
+
         <div class="card">
           <h3>اطلاعات شخصی</h3>
           <p class="muted">نام و نام خانوادگی برای نمایش در کارنامه و فایل‌های PDF استفاده می‌شود. تکمیل این بخش اختیاری است.</p>
@@ -566,13 +653,18 @@
         </div>
       </section>
 
+      <!-- تنظیمات -->
       <section id="page-setup" class="page-section">
         <h2 class="page-title">تنظیمات برنامه ⚙️</h2>
+
         <div class="card">
           <div class="field">
             <label>رشته تحصیلی</label>
-            <select id="field"><option value="تجربی">علوم تجربی</option></select>
+            <select id="field">
+              <option value="تجربی">علوم تجربی</option>
+            </select>
           </div>
+
           <div class="field">
             <label>پایه تحصیلی</label>
             <select id="grade">
@@ -580,111 +672,267 @@
               <option value="فارغ‌التحصیل">فارغ‌التحصیل</option>
             </select>
           </div>
+
           <div class="field">
             <label>ساعت مطالعه روزانه</label>
             <input id="dailyHours" type="number" min="1" max="18" value="6">
           </div>
+
           <div class="field">
             <label>روزهای باقی‌مانده تا هدف</label>
             <input id="daysLeft" type="number" value="244" readonly>
           </div>
+
           <button class="btn" onclick="saveSetup()">ذخیره و ساخت برنامه</button>
           <button class="btn btn-danger" onclick="clearPlan()">پاک کردن برنامه</button>
         </div>
       </section>
 
+      <!-- برنامه درسی -->
       <section id="page-plan" class="page-section">
         <h2 class="page-title">برنامه درسی من 📅</h2>
+
         <div class="card">
           <h3>افزودن جلسه مطالعه</h3>
+
           <div class="field">
             <label>روز</label>
             <select id="manualDay">
-              <option value="شنبه">شنبه</option><option value="یکشنبه">یکشنبه</option>
-              <option value="دوشنبه">دوشنبه</option><option value="سه‌شنبه">سه‌شنبه</option>
-              <option value="چهارشنبه">چهارشنبه</option><option value="پنجشنبه">پنجشنبه</option>
+              <option value="شنبه">شنبه</option>
+              <option value="یکشنبه">یکشنبه</option>
+              <option value="دوشنبه">دوشنبه</option>
+              <option value="سه‌شنبه">سه‌شنبه</option>
+              <option value="چهارشنبه">چهارشنبه</option>
+              <option value="پنجشنبه">پنجشنبه</option>
               <option value="جمعه">جمعه</option>
             </select>
           </div>
+
           <div class="field">
             <label>درس</label>
             <select id="manualSubject">
-              <option value="زیست‌شناسی">زیست‌شناسی</option><option value="شیمی">شیمی</option>
-              <option value="فیزیک">فیزیک</option><option value="ریاضی">ریاضی</option>
+              <option value="زیست‌شناسی">زیست‌شناسی</option>
+              <option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option>
+              <option value="ریاضی">ریاضی</option>
               <option value="زمین‌شناسی">زمین‌شناسی</option>
             </select>
           </div>
-          <div class="field"><label>مدت مطالعه (دقیقه)</label><input id="manualMinutes" type="number" min="5" value="60"></div>
-          <div class="field"><label>مبحث</label><input id="manualChapter" type="text" placeholder="مثلاً فصل اول"></div>
+
+          <div class="field">
+            <label>مدت مطالعه (دقیقه)</label>
+            <input id="manualMinutes" type="number" min="5" value="60">
+          </div>
+
+          <div class="field">
+            <label>مبحث</label>
+            <input id="manualChapter" type="text" placeholder="مثلاً فصل اول">
+          </div>
+
           <button class="btn" onclick="addManualSession()">افزودن جلسه</button>
         </div>
+
         <div id="weeklyPlan"></div>
       </section>
 
+      <!-- آزمون -->
       <section id="page-quiz" class="page-section">
         <h2 class="page-title">آزمون آنلاین 📝</h2>
+
+        <!-- آزمون تک‌درس -->
         <div id="quizSetupArea" class="card">
+          <h3>آزمون تک‌درس</h3>
+          <p class="muted">یک درس را انتخاب کن و از بانک سؤال‌های تأییدشده آزمون بده.</p>
+
           <div class="field">
             <label>درس</label>
             <select id="quizSubject">
-              <option value="زیست‌شناسی">زیست‌شناسی</option><option value="شیمی">شیمی</option>
-              <option value="فیزیک">فیزیک</option><option value="ریاضی">ریاضی</option>
+              <option value="زیست‌شناسی">زیست‌شناسی</option>
+              <option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option>
+              <option value="ریاضی">ریاضی</option>
               <option value="زمین‌شناسی">زمین‌شناسی</option>
             </select>
           </div>
+
           <div class="field">
             <label>تعداد سؤال</label>
             <select id="quizCount">
-              <option value="10">۱۰ سؤال</option><option value="20">۲۰ سؤال</option>
-              <option value="30">۳۰ سؤال</option><option value="50">۵۰ سؤال</option>
+              <option value="10">۱۰ سؤال</option>
+              <option value="20">۲۰ سؤال</option>
+              <option value="30">۳۰ سؤال</option>
+              <option value="50">۵۰ سؤال</option>
             </select>
           </div>
+
           <div class="field">
             <label>نوع آزمون</label>
             <select id="quizType">
-              <option value="بدون زمان">بدون زمان</option><option value="زمان‌دار">زمان‌دار</option>
+              <option value="بدون زمان">بدون زمان</option>
+              <option value="زمان‌دار">زمان‌دار</option>
             </select>
           </div>
-          <button class="btn" onclick="createQuiz()">شروع آزمون 🚀</button>
+
+          <button class="btn" onclick="createQuiz()">شروع آزمون تک‌درس 🚀</button>
         </div>
+
+        <!-- آزمون جامع -->
+        <div id="comprehensiveSetupArea" class="card">
+          <h3>آزمون جامع چنددرسی 🎯</h3>
+          <p class="muted">درس‌های موردنظر را فعال کن و تعداد سؤال هر درس را مشخص کن.</p>
+
+          <div class="subject-pick">
+            <label>
+              <input type="checkbox" id="include-bio" checked>
+              زیست‌شناسی
+            </label>
+            <input type="number" id="count-bio" min="1" max="100" value="20">
+          </div>
+
+          <div class="subject-pick">
+            <label>
+              <input type="checkbox" id="include-chem" checked>
+              شیمی
+            </label>
+            <input type="number" id="count-chem" min="1" max="100" value="10">
+          </div>
+
+          <div class="subject-pick">
+            <label>
+              <input type="checkbox" id="include-physics" checked>
+              فیزیک
+            </label>
+            <input type="number" id="count-physics" min="1" max="100" value="10">
+          </div>
+
+          <div class="subject-pick">
+            <label>
+              <input type="checkbox" id="include-math" checked>
+              ریاضی
+            </label>
+            <input type="number" id="count-math" min="1" max="100" value="10">
+          </div>
+
+          <div class="subject-pick">
+            <label>
+              <input type="checkbox" id="include-earth">
+              زمین‌شناسی
+            </label>
+            <input type="number" id="count-earth" min="1" max="100" value="5">
+          </div>
+
+          <div class="field">
+            <label>نوع آزمون جامع</label>
+            <select id="comprehensiveQuizType">
+              <option value="بدون زمان">بدون زمان</option>
+              <option value="زمان‌دار">زمان‌دار</option>
+            </select>
+          </div>
+
+          <button
+            class="btn btn-secondary"
+            id="createComprehensiveButton"
+            onclick="startComprehensiveQuiz()"
+          >
+            شروع آزمون جامع 🚀
+          </button>
+        </div>
+
+        <!-- محیط اجرای آزمون -->
         <div id="quizArea" style="display:none">
           <div id="quizTimer">زمان آزمون</div>
           <div id="quizQuestions"></div>
-          <button class="btn" onclick="submitQuiz()">ثبت و تصحیح آزمون</button>
-          <button class="btn btn-danger" onclick="exitQuiz()">خروج از آزمون</button>
+
+          <button class="btn" onclick="submitQuiz()">
+            ثبت و تصحیح آزمون
+          </button>
+
+          <button class="btn btn-danger" onclick="exitQuiz()">
+            خروج از آزمون
+          </button>
         </div>
       </section>
 
+      <!-- نتیجه آزمون -->
       <section id="page-exam-result" class="page-section">
         <h2 class="page-title">نتیجه آزمون 🎯</h2>
+
         <div class="card" style="text-align:center">
           <h3 id="res-subject">درس</h3>
-          <div class="result-circle" id="res-percent-circle"><span id="res-percent-text">۰٪</span></div>
-          <div class="stats-grid">
-            <div class="stat-card"><span>تعداد سؤال</span><strong id="res-total">۰</strong></div>
-            <div class="stat-card"><span>پاسخ صحیح</span><strong id="res-correct">۰</strong></div>
-            <div class="stat-card"><span>پاسخ غلط</span><strong id="res-wrong">۰</strong></div>
+
+          <div class="result-circle" id="res-percent-circle">
+            <span id="res-percent-text">۰٪</span>
           </div>
+
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span>تعداد سؤال</span>
+              <strong id="res-total">۰</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>پاسخ صحیح</span>
+              <strong id="res-correct">۰</strong>
+            </div>
+
+            <div class="stat-card">
+              <span>پاسخ غلط</span>
+              <strong id="res-wrong">۰</strong>
+            </div>
+          </div>
+
           <h3>تراز تخمینی: <span id="res-traz">۰</span></h3>
-          <p class="muted">تراز نمایش‌داده‌شده تخمینی است و تراز رسمی سازمان سنجش نیست.</p>
-          <button class="btn" onclick="showPage('quiz')">آزمون جدید</button>
+
+          <p class="muted">
+            تراز نمایش‌داده‌شده تخمینی است و تراز رسمی سازمان سنجش نیست.
+          </p>
+
+          <button class="btn" onclick="showPage('quiz')">
+            آزمون جدید
+          </button>
+        </div>
+
+        <!-- تحلیل تفصیلی آزمون -->
+        <div class="card" id="res-detailed">
+          <h3>تحلیل تفصیلی آزمون</h3>
+          <p class="muted">نتایج هر درس پس از ثبت آزمون اینجا نمایش داده می‌شود.</p>
         </div>
       </section>
 
+      <!-- تحلیل عملکرد -->
       <section id="page-analytics" class="page-section">
         <h2 class="page-title">تحلیل عملکرد 📊</h2>
-        <div id="examList"><div class="card muted">هنوز آزمونی ثبت نشده است.</div></div>
+
+        <div class="card">
+          <h3>خلاصه عملکرد</h3>
+          <div id="analyticsSummary">
+            <p class="muted">پس از ثبت آزمون، تحلیل عملکردت اینجا نمایش داده می‌شود.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>سوابق آزمون‌ها</h3>
+          <div id="examList">
+            <div class="muted">هنوز آزمونی ثبت نشده است.</div>
+          </div>
+        </div>
       </section>
 
+      <!-- دفتر اشتباهات -->
       <section id="page-mistakes" class="page-section">
         <h2 class="page-title">دفتر اشتباهات من 📕</h2>
+
         <div class="card">
           <div class="field">
             <label>ثبت اشتباه یا نکته مهم</label>
             <textarea id="mistakeText" rows="4" placeholder="اشتباه یا نکته‌ای که باید دوباره مرور کنی..."></textarea>
           </div>
-          <button class="btn" onclick="addMistake()">ثبت در دفتر اشتباهات</button>
+
+          <button class="btn" onclick="addMistake()">
+            ثبت در دفتر اشتباهات
+          </button>
         </div>
+
         <div id="mistakeList"></div>
       </section>
 
@@ -692,12 +940,14 @@
   </div>
 </div>
 
+<!-- شمارش معکوس -->
 <script>
 (function () {
   const targetDate = new Date("2027-06-30T20:30:00Z").getTime();
 
   function updateCountdown() {
     const distance = targetDate - Date.now();
+
     const values = {
       "countdown-days": Math.max(0, Math.floor(distance / 86400000)),
       "countdown-hours": Math.max(0, Math.floor((distance % 86400000) / 3600000)),
@@ -707,7 +957,9 @@
 
     Object.entries(values).forEach(([id, value]) => {
       const element = document.getElementById(id);
-      if (element) element.textContent = value.toLocaleString("fa-IR");
+      if (element) {
+        element.textContent = value.toLocaleString("fa-IR");
+      }
     });
   }
 
@@ -716,6 +968,7 @@
 })();
 </script>
 
+<!-- فایل‌های اصلی برنامه -->
 <script src="js/supabase-client.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/planner.js"></script>
@@ -724,10 +977,13 @@
 <script src="js/profile.js"></script>
 <script src="js/app.js"></script>
 
+<!-- ورود و ثبت‌نام -->
 <script>
 function setAuthMessage(message, isError = false) {
   const element = document.getElementById("authMessage");
+
   if (!element) return;
+
   element.textContent = message;
   element.style.color = isError ? "#d45d7c" : "#26866f";
 }
@@ -739,7 +995,12 @@ function showAuthMode(mode) {
 
   login.style.display = mode === "login" ? "block" : "none";
   register.style.display = mode === "register" ? "block" : "none";
-  title.textContent = mode === "login" ? "ورود به حساب کاربری" : "ساخت حساب رایگان";
+
+  title.textContent =
+    mode === "login"
+      ? "ورود به حساب کاربری"
+      : "ساخت حساب رایگان";
+
   setAuthMessage("");
 }
 
@@ -755,18 +1016,28 @@ document.getElementById("showLogin").addEventListener("click", event => {
 
 document.getElementById("loginForm").addEventListener("submit", async event => {
   event.preventDefault();
+
   const button = event.currentTarget.querySelector("button");
+
   button.disabled = true;
   button.textContent = "در حال ورود...";
 
   try {
     const email = document.getElementById("loginEmail").value;
     const password = document.getElementById("loginPassword").value;
-    const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
     if (error) throw error;
+
     window.location.reload();
+
   } catch (error) {
     setAuthMessage(error.message, true);
+
   } finally {
     button.disabled = false;
     button.textContent = "ورود به حساب";
@@ -775,7 +1046,9 @@ document.getElementById("loginForm").addEventListener("submit", async event => {
 
 document.getElementById("registerForm").addEventListener("submit", async event => {
   event.preventDefault();
+
   const button = event.currentTarget.querySelector("button");
+
   button.disabled = true;
   button.textContent = "در حال ساخت حساب...";
 
@@ -784,8 +1057,13 @@ document.getElementById("registerForm").addEventListener("submit", async event =
     const password = document.getElementById("registerPassword").value;
     const confirmPassword = document.getElementById("confirmPassword").value;
 
-    if (password.length < 8) throw new Error("رمز عبور باید حداقل ۸ کاراکتر باشد.");
-    if (password !== confirmPassword) throw new Error("تکرار رمز عبور با رمز اصلی یکسان نیست.");
+    if (password.length < 8) {
+      throw new Error("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+    }
+
+    if (password !== confirmPassword) {
+      throw new Error("تکرار رمز عبور با رمز اصلی یکسان نیست.");
+    }
 
     const { data, error } = await supabaseClient.auth.signUp({
       email,
@@ -802,44 +1080,69 @@ document.getElementById("registerForm").addEventListener("submit", async event =
       window.location.reload();
     } else {
       showAuthMode("login");
-      setAuthMessage("ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ایمیلت را بررسی کن.");
+
+      setAuthMessage(
+        "ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ایمیلت را بررسی کن."
+      );
     }
+
   } catch (error) {
     setAuthMessage(error.message, true);
+
   } finally {
     button.disabled = false;
     button.textContent = "ساخت حساب رایگان";
   }
 });
 
+/* راه‌اندازی احراز هویت */
 async function initializeAuthentication() {
   try {
     const { data, error } = await supabaseClient.auth.getSession();
+
     if (error) throw error;
 
     const user = data.session?.user || null;
+
     const authPage = document.getElementById("authPage");
     const appContent = document.getElementById("appContent");
 
     if (user) {
       authPage.style.display = "none";
       appContent.style.display = "block";
-      document.getElementById("userEmail").textContent = user.email || "";
 
-      if (typeof init === "function") await init();
-      if (typeof loadProfile === "function") await loadProfile();
+      document.getElementById("userEmail").textContent =
+        user.email || "";
+
+      if (typeof init === "function") {
+        await init();
+      }
+
+      if (typeof loadProfile === "function") {
+        await loadProfile();
+      }
+
     } else {
       appContent.style.display = "none";
       authPage.style.display = "flex";
     }
+
   } catch (error) {
     console.error("Auth initialization error:", error);
+
     document.getElementById("authPage").style.display = "flex";
-    setAuthMessage("اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.", true);
+
+    setAuthMessage(
+      "اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.",
+      true
+    );
   }
 }
 
-document.addEventListener("DOMContentLoaded", initializeAuthentication);
+document.addEventListener(
+  "DOMContentLoaded",
+  initializeAuthentication
+);
 </script>
 
 </body>
