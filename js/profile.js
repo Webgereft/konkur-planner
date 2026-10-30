@@ -1,7 +1,15 @@
+/* =====================================
+   سیستم مدیریت پروفایل کنکوریار
+===================================== */
 
 const PROFILE = {
+
   async get() {
     const user = await AUTH.getUser();
+
+    if (!user || !user.id) {
+      throw new Error("کاربر وارد حساب کاربری نشده است. لطفاً دوباره وارد شو.");
+    }
 
     const { data, error } = await supabaseClient
       .from("student_profiles")
@@ -17,6 +25,10 @@ const PROFILE = {
   async save(firstName, lastName) {
     const user = await AUTH.getUser();
 
+    if (!user || !user.id) {
+      throw new Error("نشست کاربری معتبر نیست. لطفاً خارج شو و دوباره وارد شو.");
+    }
+
     const profile = {
       user_id: user.id,
       first_name: firstName.trim(),
@@ -26,7 +38,9 @@ const PROFILE = {
 
     const { data, error } = await supabaseClient
       .from("student_profiles")
-      .upsert(profile, { onConflict: "user_id" })
+      .upsert(profile, {
+        onConflict: "user_id"
+      })
       .select()
       .single();
 
@@ -36,45 +50,101 @@ const PROFILE = {
   }
 };
 
+
+/* =====================================
+   بارگذاری اطلاعات پروفایل
+===================================== */
+
 async function loadProfile() {
   try {
+    const user = await AUTH.getUser();
+
+    if (!user || !user.id) {
+      console.warn("کاربر وارد حساب نشده است.");
+      return;
+    }
+
     const profile = await PROFILE.get();
 
-    document.getElementById("profileFirstName").value =
-      profile?.first_name || "";
+    const firstNameInput =
+      document.getElementById("profileFirstName");
 
-    document.getElementById("profileLastName").value =
-      profile?.last_name || "";
+    const lastNameInput =
+      document.getElementById("profileLastName");
+
+    if (firstNameInput) {
+      firstNameInput.value = profile?.first_name || "";
+    }
+
+    if (lastNameInput) {
+      lastNameInput.value = profile?.last_name || "";
+    }
 
   } catch (error) {
     console.error("Profile loading error:", error);
-    alert("دریافت اطلاعات پروفایل ناموفق بود.");
+
+    const message = document.getElementById("profileMessage");
+
+    if (message) {
+      message.textContent =
+        "دریافت اطلاعات پروفایل ناموفق بود: " + error.message;
+
+      message.style.color = "red";
+    }
   }
 }
 
+
+/* =====================================
+   ذخیره اطلاعات پروفایل
+===================================== */
+
 async function saveProfile() {
-  const firstName = document
-    .getElementById("profileFirstName").value;
 
-  const lastName = document
-    .getElementById("profileLastName").value;
+  const firstNameInput =
+    document.getElementById("profileFirstName");
 
-  const message = document.getElementById("profileMessage");
+  const lastNameInput =
+    document.getElementById("profileLastName");
 
-  if (!firstName.trim() || !lastName.trim()) {
+  const message =
+    document.getElementById("profileMessage");
+
+  if (!firstNameInput || !lastNameInput || !message) {
+    console.error("عناصر فرم پروفایل پیدا نشدند.");
+    return;
+  }
+
+  const firstName = firstNameInput.value.trim();
+  const lastName = lastNameInput.value.trim();
+
+  if (!firstName || !lastName) {
     message.textContent = "نام و نام خانوادگی را وارد کن.";
+    message.style.color = "red";
     return;
   }
 
   try {
-    await PROFILE.save(firstName, lastName);
+    message.textContent = "در حال ذخیره اطلاعات...";
 
-    message.textContent = "اطلاعات پروفایل با موفقیت ذخیره شد 💜";
+    const savedProfile = await PROFILE.save(
+      firstName,
+      lastName
+    );
+
+    message.textContent =
+      "اطلاعات پروفایل با موفقیت ذخیره شد 💜";
+
     message.style.color = "green";
 
+    console.log("Profile saved:", savedProfile);
+
   } catch (error) {
-    console.error(error);
-    message.textContent = "ذخیره اطلاعات انجام نشد: " + error.message;
+    console.error("Profile saving error:", error);
+
+    message.textContent =
+      "ذخیره اطلاعات انجام نشد: " + error.message;
+
     message.style.color = "red";
   }
 }
