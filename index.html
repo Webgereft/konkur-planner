@@ -4,9 +4,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="theme-color" content="#8065d8">
-  <meta name="description" content="کنکوریار؛ برنامه‌ریزی، آزمون و تحلیل مسیر کنکور تجربی ۱۴۰۶">
-  <title>کنکوریار | برنامه‌ریز هوشمند کنکور ۱۴۰۶</title>
+  <meta name="theme-color" content="#8061ce">
+  <meta name="description" content="کنکوریار؛ برنامه‌ریزی، آزمون و تحلیل هوشمند برای کنکور تجربی">
+  <title>کنکوریار | همراه مسیر موفقیت</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -19,17 +19,17 @@
 
   <style>
     :root {
-      --primary: #8065d8;
-      --primary-dark: #684cc0;
-      --secondary: #36c7bd;
-      --pink: #f18bb8;
-      --orange: #f5ad66;
-      --background: #f5f1ff;
-      --surface: rgba(255,255,255,.78);
-      --text: #30294a;
-      --muted: #817a96;
-      --border: rgba(128,101,216,.15);
-      --shadow: 0 12px 35px rgba(75,53,130,.09);
+      --primary: #8061ce;
+      --primary-dark: #6845b5;
+      --secondary: #19b8a7;
+      --pink: #ed7da8;
+      --orange: #f1a65a;
+      --background: #f3efff;
+      --text: #302b43;
+      --muted: #88839b;
+      --white: #fff;
+      --border: rgba(128,97,206,.13);
+      --shadow: 0 10px 35px rgba(80,55,140,.09);
       --radius: 20px;
     }
 
@@ -40,87 +40,207 @@
     body {
       margin: 0;
       font-family: "Vazirmatn", sans-serif;
+      background: linear-gradient(135deg,#f2edff,#e9f8f7);
       color: var(--text);
-      background:
-        radial-gradient(circle at 10% 5%, #e9ddff 0, transparent 30%),
-        radial-gradient(circle at 90% 20%, #d9f8f2 0, transparent 28%),
-        var(--background);
       min-height: 100vh;
     }
 
-    button, input, select, textarea {
-      font: inherit;
+    button,input,select,textarea {
+      font-family: inherit;
     }
 
     button {
       cursor: pointer;
     }
 
-    .app-header {
+    .hidden {
+      display: none !important;
+    }
+
+    /* Authentication */
+
+    #authPage {
+      min-height: 100vh;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 430px;
+      padding: 32px;
+      background: rgba(255,255,255,.9);
+      border: 1px solid rgba(255,255,255,.8);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(80,50,130,.13);
+      text-align: center;
+    }
+
+    .auth-logo {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 15px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      background: linear-gradient(135deg,#8061ce,#b18be9);
+      color: white;
+      font-size: 32px;
+    }
+
+    .auth-card h1 {
+      color: var(--primary);
+      margin: 8px 0;
+    }
+
+    .auth-card p {
+      color: var(--muted);
+    }
+
+    .auth-input {
+      width: 100%;
+      padding: 14px;
+      margin: 8px 0;
+      border: 1px solid #e5e0ef;
+      border-radius: 13px;
+      outline: none;
+      background: white;
+      font-size: 14px;
+    }
+
+    .auth-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(128,97,206,.1);
+    }
+
+    .auth-button {
+      width: 100%;
+      padding: 14px;
+      border: 0;
+      border-radius: 13px;
+      margin-top: 12px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      font-size: 15px;
+    }
+
+    .auth-button:hover {
+      background: var(--primary-dark);
+    }
+
+    .auth-link {
+      color: var(--primary);
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .auth-message {
+      font-size: 13px;
+      min-height: 22px;
+      margin-top: 12px;
+    }
+
+    /* App */
+
+    #appContent {
+      display: none;
+      min-height: 100vh;
+    }
+
+    .topbar {
       position: sticky;
       top: 0;
-      z-index: 20;
+      z-index: 50;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 5%;
       background: rgba(255,255,255,.8);
       backdrop-filter: blur(18px);
       border-bottom: 1px solid var(--border);
-      padding: 12px 5%;
-    }
-
-    .header-inner {
-      max-width: 1200px;
-      margin: auto;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 16px;
-      flex-wrap: wrap;
     }
 
     .brand {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 12px;
+      min-width: 0;
+    }
+
+    #userEmail {
+      max-width: 190px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: var(--muted);
+    }
+
+    .logout-btn {
+      border: 0;
+      background: #fff0f3;
+      color: #d45d7c;
+      border-radius: 12px;
+      padding: 9px 13px;
+      font-weight: 700;
+    }
+
+    .app-layout {
+      display: flex;
+      max-width: 1450px;
+      margin: auto;
+      padding: 22px;
+      gap: 22px;
+    }
+
+    .sidebar {
+      width: 220px;
+      flex-shrink: 0;
+      background: rgba(255,255,255,.75);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 15px;
+      height: fit-content;
+      position: sticky;
+      top: 90px;
+    }
+
+    .nav-btn {
+      width: 100%;
       display: flex;
       align-items: center;
       gap: 10px;
-      font-size: 22px;
-      font-weight: 800;
-      color: var(--primary-dark);
-    }
-
-    .brand-icon {
-      width: 42px;
-      height: 42px;
-      display: grid;
-      place-items: center;
-      border-radius: 14px;
-      color: white;
-      background: linear-gradient(135deg, #a68af5, #7054cb);
-      box-shadow: 0 7px 16px #8065d844;
-    }
-
-    nav {
-      display: flex;
-      gap: 7px;
-      flex-wrap: wrap;
-    }
-
-    nav button {
       border: 0;
+      padding: 13px;
+      margin: 4px 0;
+      border-radius: 13px;
       background: transparent;
-      color: var(--muted);
-      border-radius: 12px;
-      padding: 9px 13px;
+      color: var(--text);
+      text-align: right;
       font-size: 13px;
-      transition: .2s;
     }
 
-    nav button:hover,
-    nav button.active {
+    .nav-btn:hover,
+    .nav-btn.active {
       background: #eee8ff;
-      color: var(--primary-dark);
+      color: var(--primary);
+      font-weight: 700;
     }
 
-    main {
-      width: min(1100px, 92%);
-      margin: 28px auto 60px;
+    .main-content {
+      flex: 1;
+      min-width: 0;
     }
 
     .page-section {
@@ -133,301 +253,163 @@
     }
 
     @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+      from {opacity:0;transform:translateY(8px)}
+      to {opacity:1;transform:translateY(0)}
     }
 
-    .page-heading {
-      margin-bottom: 22px;
-    }
-
-    .page-heading h1 {
-      margin: 0 0 6px;
-      font-size: clamp(22px, 4vw, 30px);
-    }
-
-    .page-heading p {
-      color: var(--muted);
-      margin: 0;
-      font-size: 14px;
-    }
-
-    .hero {
-      border-radius: 28px;
-      padding: 28px;
-      color: white;
-      background: linear-gradient(125deg, #8065d8, #a58ce9 65%, #c19cf0);
-      box-shadow: 0 18px 40px #8065d833;
-      margin-bottom: 22px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .hero::after {
-      content: "✦";
-      position: absolute;
-      font-size: 150px;
-      opacity: .12;
-      left: 30px;
-      top: -35px;
-    }
-
-    .hero h1 {
-      margin: 0 0 8px;
-      font-size: clamp(23px, 4vw, 34px);
-    }
-
-    .hero p {
-      margin: 0;
-      opacity: .9;
-    }
-
-    .countdown-grid {
-      display: grid;
-      grid-template-columns: repeat(4, minmax(0, 1fr));
-      gap: 10px;
-      max-width: 500px;
-      margin-top: 22px;
-    }
-
-    .countdown-box {
-      text-align: center;
-      padding: 12px 5px;
-      background: rgba(255,255,255,.18);
-      border: 1px solid rgba(255,255,255,.2);
-      border-radius: 15px;
-    }
-
-    .countdown-box strong {
-      display: block;
-      font-size: 25px;
-    }
-
-    .countdown-box span {
-      font-size: 11px;
-      opacity: .85;
-    }
-
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 14px;
-      margin-bottom: 22px;
-    }
-
-    .stat-card, .card {
-      background: var(--surface);
-      border: 1px solid rgba(255,255,255,.8);
-      box-shadow: var(--shadow);
+    .card {
+      background: rgba(255,255,255,.84);
+      border: 1px solid rgba(255,255,255,.9);
       border-radius: var(--radius);
-      padding: 19px;
-      backdrop-filter: blur(12px);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      margin-bottom: 17px;
     }
 
-    .stat-card span {
+    .page-title {
+      font-size: 23px;
+      font-weight: 800;
+      margin: 5px 0 20px;
+    }
+
+    .muted {
       color: var(--muted);
       font-size: 13px;
-    }
-
-    .stat-card strong {
-      display: block;
-      font-size: 25px;
-      margin-top: 7px;
-      color: var(--primary-dark);
-    }
-
-    .section-title {
-      font-size: 18px;
-      margin: 0 0 15px;
-    }
-
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 16px;
-    }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 15px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 7px;
-      margin-bottom: 13px;
-    }
-
-    .form-group label {
-      font-size: 13px;
-      font-weight: 700;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      background: rgba(255,255,255,.85);
-      padding: 12px 13px;
-      outline: none;
-      color: var(--text);
-      transition: .2s;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px #8065d81b;
-    }
-
-    input:disabled, textarea:disabled {
-      background: #f1eff6;
-      color: var(--muted);
-    }
-
-    textarea {
-      min-height: 100px;
-      resize: vertical;
     }
 
     .btn {
       border: 0;
       border-radius: 12px;
-      padding: 12px 18px;
-      background: var(--primary);
+      padding: 11px 17px;
       color: white;
+      background: var(--primary);
       font-weight: 700;
-      transition: .2s;
-    }
-
-    .btn:hover {
-      background: var(--primary-dark);
-      transform: translateY(-1px);
     }
 
     .btn-secondary {
-      background: #e9e2ff;
-      color: var(--primary-dark);
-    }
-
-    .btn-secondary:hover {
-      background: #ddd2ff;
+      background: var(--secondary);
     }
 
     .btn-danger {
-      background: #ffe6ed;
-      color: #c34b70;
+      background: #e87991;
     }
 
-    .btn-small {
-      padding: 7px 11px;
-      font-size: 12px;
+    input,select,textarea {
+      max-width: 100%;
     }
 
-    .form-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 10px;
+    .field {
+      margin: 12px 0;
     }
 
-    .session-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-      padding: 12px 0;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .session-item:last-child {
-      border-bottom: 0;
-    }
-
-    .session-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .session-info strong {
-      color: var(--primary-dark);
-    }
-
-    .session-info small {
+    .field label {
       display: block;
-      color: var(--muted);
-      font-size: 12px;
-      margin-top: 4px;
+      margin-bottom: 7px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
-    .session-item input[type="checkbox"],
-    .quiz-option input[type="radio"] {
-      width: auto;
-      accent-color: var(--primary);
+    .field input,
+    .field select,
+    .field textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #e6e1ef;
+      border-radius: 12px;
+      background: white;
+      outline: none;
+    }
+
+    .field input:focus,
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--primary);
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3,minmax(0,1fr));
+      gap: 14px;
+    }
+
+    .stat-card {
+      padding: 20px;
+      background: white;
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .stat-card strong {
+      display: block;
+      color: var(--primary);
+      font-size: 25px;
+      margin-top: 8px;
+    }
+
+    .countdown-card {
+      background: linear-gradient(120deg,#8061ce,#aa82e6);
+      color: white;
+      border-radius: 24px;
+      padding: 25px;
+      margin-bottom: 18px;
+    }
+
+    .countdown-grid {
+      display: grid;
+      grid-template-columns: repeat(4,1fr);
+      gap: 10px;
+      margin-top: 18px;
+      text-align: center;
+    }
+
+    .countdown-number {
+      background: rgba(255,255,255,.17);
+      border-radius: 14px;
+      padding: 12px 5px;
+      font-size: 25px;
+      font-weight: 800;
+    }
+
+    .countdown-label {
+      font-size: 11px;
+      opacity: .85;
     }
 
     .quiz-question {
-      margin-bottom: 16px;
-    }
-
-    .quiz-question h4 {
-      color: var(--primary-dark);
-      margin: 0 0 12px;
-    }
-
-    .quiz-question p {
-      line-height: 2;
-    }
-
-    .quiz-options {
-      display: grid;
-      gap: 9px;
+      padding: 20px;
+      margin: 16px 0;
+      border-radius: 17px;
+      background: white;
+      border: 1px solid var(--border);
     }
 
     .quiz-option {
       display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      border: 1px solid var(--border);
-      border-radius: 12px;
+      align-items: center;
+      gap: 9px;
       padding: 12px;
+      margin: 8px 0;
+      border-radius: 11px;
+      background: #f8f6fd;
       cursor: pointer;
-      line-height: 1.8;
-      background: rgba(255,255,255,.65);
     }
 
     .quiz-option:hover {
-      border-color: var(--primary);
-      background: #f5f0ff;
+      background: #eee8ff;
     }
 
     .quiz-option input {
-      margin-top: 7px;
-    }
-
-    #quizTimer {
-      position: sticky;
-      top: 85px;
-      z-index: 5;
-      padding: 12px 16px;
-      border-radius: 14px;
-      color: var(--primary-dark);
-      background: #eee8ff;
-      font-weight: 800;
-      text-align: center;
-      margin-bottom: 16px;
+      accent-color: var(--primary);
     }
 
     .result-circle {
-      --percent: 0;
-      width: 150px;
-      height: 150px;
+      width: 140px;
+      height: 140px;
       border-radius: 50%;
       margin: 15px auto;
       display: grid;
       place-items: center;
-      background: conic-gradient(var(--primary) calc(var(--percent) * 1%), #eee 0);
+      background: conic-gradient(var(--primary) 0%,#eee 0%);
       position: relative;
     }
 
@@ -441,117 +423,87 @@
 
     .result-circle span {
       position: relative;
-      font-size: 27px;
+      z-index: 1;
+      font-size: 25px;
       font-weight: 800;
-      color: var(--primary-dark);
     }
 
-    .result-stats {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
+    .list-item {
+      background: white;
+      border-radius: 13px;
+      padding: 14px;
+      margin: 9px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       gap: 10px;
-      margin: 20px 0;
+      border: 1px solid var(--border);
     }
 
-    .result-stats .card {
-      text-align: center;
-      padding: 13px 7px;
+    .list-item button {
+      border: 0;
+      border-radius: 9px;
+      padding: 7px 10px;
+      background: #fff0f2;
+      color: #d45d7c;
     }
 
-    .result-stats strong {
-      display: block;
-      font-size: 21px;
-      color: var(--primary-dark);
-    }
-
-    .muted {
-      color: var(--muted);
-      font-size: 13px;
-    }
-
-    .notice {
-      background: #fff6e9;
-      border: 1px solid #f7dfb7;
-      color: #8b632b;
+    #quizTimer {
+      position: sticky;
+      top: 65px;
+      z-index: 10;
+      background: #eee8ff;
+      color: var(--primary);
+      border-radius: 13px;
       padding: 13px;
-      border-radius: 12px;
-      font-size: 13px;
-      line-height: 1.9;
-      margin: 12px 0;
-    }
-
-    .success-notice {
-      background: #e9faf4;
-      border-color: #c6efdf;
-      color: #26785c;
-    }
-
-    .empty-state {
-      color: var(--muted);
       text-align: center;
-      padding: 22px 10px;
-      font-size: 14px;
+      font-weight: 800;
     }
 
-    footer {
-      text-align: center;
-      padding: 25px 10px;
-      color: var(--muted);
-      font-size: 12px;
-    }
-
-    @media (max-width: 700px) {
-      .app-header {
-        padding: 10px 4%;
+    @media(max-width:850px) {
+      .app-layout {
+        display: block;
+        padding: 12px;
       }
 
-      .header-inner {
-        justify-content: center;
-      }
-
-      nav {
+      .sidebar {
+        position: static;
         width: 100%;
+        display: flex;
         overflow-x: auto;
-        flex-wrap: nowrap;
-        padding-bottom: 3px;
+        gap: 5px;
+        margin-bottom: 15px;
       }
 
-      nav button {
-        white-space: nowrap;
-      }
-
-      main {
-        margin-top: 18px;
-      }
-
-      .stats-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-      }
-
-      .card-grid, .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .result-stats {
-        grid-template-columns: repeat(2, 1fr);
-      }
-
-      .hero {
-        padding: 22px 18px;
+      .nav-btn {
+        width: auto;
+        min-width: max-content;
       }
     }
 
-    @media (max-width: 390px) {
-      .countdown-grid {
-        gap: 6px;
+    @media(max-width:550px) {
+      .stats-grid {
+        grid-template-columns: repeat(2,minmax(0,1fr));
       }
 
-      .countdown-box strong {
+      .topbar {
+        padding: 10px 12px;
+      }
+
+      .brand {
+        font-size: 18px;
+      }
+
+      #userEmail {
+        max-width: 105px;
+      }
+
+      .auth-card {
+        padding: 24px 18px;
+      }
+
+      .countdown-number {
         font-size: 20px;
-      }
-
-      .stat-card {
-        padding: 14px;
       }
     }
   </style>
@@ -559,464 +511,576 @@
 
 <body>
 
-<header class="app-header">
-  <div class="header-inner">
-    <div class="brand">
-      <div class="brand-icon">✦</div>
-      <span>کنکوریار</span>
-    </div>
+<!-- ==============================
+     صفحه ورود و ثبت نام
+============================== -->
 
-    <nav>
-      <button class="active" onclick="showPage('dashboard', this)">🏠 خانه</button>
-      <button onclick="showPage('setup', this)">⚙️ تنظیمات</button>
-      <button onclick="showPage('plan', this)">📚 برنامه</button>
-      <button onclick="showPage('quiz', this)">📝 آزمون</button>
-      <button onclick="showPage('analytics', this)">📊 تحلیل</button>
-      <button onclick="showPage('mistakes', this)">💡 اشتباهات</button>
-    </nav>
+<div id="authPage">
+  <div class="auth-card">
+    <div class="auth-logo">📚</div>
+    <h1>کنکوریار</h1>
+    <p>همراه تو تا موفقیت در کنکور ۱۴۰۶</p>
+
+    <h3 id="authTitle">ورود به حساب کاربری</h3>
+
+    <form id="loginForm">
+      <input class="auth-input" id="loginEmail"
+        type="email" placeholder="ایمیل"
+        autocomplete="email" required>
+
+      <input class="auth-input" id="loginPassword"
+        type="password" placeholder="رمز عبور"
+        autocomplete="current-password" required>
+
+      <button class="auth-button" type="submit">ورود به حساب</button>
+
+      <p>حساب کاربری نداری؟
+        <a class="auth-link" href="#" id="showRegister">ثبت‌نام کن</a>
+      </p>
+    </form>
+
+    <form id="registerForm" style="display:none">
+      <input class="auth-input" id="registerEmail"
+        type="email" placeholder="ایمیل"
+        autocomplete="email" required>
+
+      <input class="auth-input" id="registerPassword"
+        type="password" placeholder="رمز عبور (حداقل ۸ کاراکتر)"
+        autocomplete="new-password" minlength="8" required>
+
+      <input class="auth-input" id="confirmPassword"
+        type="password" placeholder="تکرار رمز عبور"
+        autocomplete="new-password" minlength="8" required>
+
+      <button class="auth-button" type="submit">ساخت حساب رایگان</button>
+
+      <p>قبلاً ثبت‌نام کرده‌ای؟
+        <a class="auth-link" href="#" id="showLogin">وارد شو</a>
+      </p>
+    </form>
+
+    <div id="authMessage" class="auth-message"></div>
   </div>
-</header>
+</div>
 
-<main>
+<!-- ==============================
+     محتوای اصلی سایت
+============================== -->
 
-  <!-- DASHBOARD -->
-  <section id="page-dashboard" class="page-section active">
+<div id="appContent">
 
-    <div class="hero">
-      <h1>سلام قهرمان کنکور! 🌱</h1>
-      <p>هر روز یک قدم به هدفت نزدیک‌تر شو.</p>
+  <header class="topbar">
+    <div class="brand">💜 کنکوریار</div>
 
-      <div class="countdown-grid" id="countdown-timer">
-        <div class="countdown-box">
-          <strong id="countdown-days">---</strong>
-          <span>روز</span>
-        </div>
-        <div class="countdown-box">
-          <strong id="countdown-hours">---</strong>
-          <span>ساعت</span>
-        </div>
-        <div class="countdown-box">
-          <strong id="countdown-minutes">---</strong>
-          <span>دقیقه</span>
-        </div>
-        <div class="countdown-box">
-          <strong id="countdown-seconds">---</strong>
-          <span>ثانیه</span>
-        </div>
-      </div>
-      <p style="margin-top:12px;font-size:12px">تا تاریخ هدف انتخاب‌شده: ۱۰ تیر ۱۴۰۶</p>
+    <div class="user-area">
+      <span id="userEmail"></span>
+      <button class="logout-btn" onclick="AUTH.logout()">خروج</button>
     </div>
+  </header>
 
-    <div class="stats-grid">
-      <div class="stat-card">
-        <span>⏰ ساعت مطالعه ثبت‌شده</span>
-        <strong id="totalStudyHours">۰</strong>
-      </div>
-      <div class="stat-card">
-        <span>✅ جلسات انجام‌شده</span>
-        <strong id="totalSessions">۰</strong>
-      </div>
-      <div class="stat-card">
-        <span>📝 آزمون‌های ثبت‌شده</span>
-        <strong id="totalExams">۰</strong>
-      </div>
-    </div>
+  <div class="app-layout">
 
-    <div class="card" style="margin-bottom:16px">
-      <h3 class="section-title">نمای کلی عملکرد تو</h3>
-      <div id="summary" class="card-grid">
-        <p class="empty-state">در حال بارگذاری اطلاعات...</p>
-      </div>
-    </div>
+    <aside class="sidebar">
+      <button class="nav-btn active" onclick="showPage('dashboard')">🏠 داشبورد</button>
+      <button class="nav-btn" onclick="showPage('setup')">⚙️ تنظیمات</button>
+      <button class="nav-btn" onclick="showPage('plan')">📅 برنامه درسی</button>
+      <button class="nav-btn" onclick="showPage('quiz')">📝 آزمون</button>
+      <button class="nav-btn" onclick="showPage('analytics')">📊 تحلیل عملکرد</button>
+      <button class="nav-btn" onclick="showPage('mistakes')">📕 دفتر اشتباهات</button>
+    </aside>
 
-    <div class="card">
-      <h3 class="section-title">کارهای پیش رو 📌</h3>
-      <div id="todayTasks">
-        <p class="empty-state">در حال بارگذاری برنامه...</p>
-      </div>
-    </div>
+    <main class="main-content">
 
-  </section>
+      <!-- داشبورد -->
 
-  <!-- SETUP -->
-  <section id="page-setup" class="page-section">
+      <section id="page-dashboard" class="page-section active">
+        <h2 class="page-title">داشبورد من 🌸</h2>
 
-    <div class="page-heading">
-      <h1>⚙️ تنظیمات برنامه</h1>
-      <p>اطلاعات اولیه را وارد کن تا برنامه مطالعاتی‌ات ساخته شود.</p>
-    </div>
+        <div class="countdown-card">
+          <h3>تا کنکور ۱۴۰۶ چقدر باقی مانده؟</h3>
+          <p>هر روز یک قدم به هدفت نزدیک‌تر شو.</p>
 
-    <div class="card">
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="field">رشته تحصیلی</label>
-          <select id="field">
-            <option value="تجربی" selected>علوم تجربی</option>
-          </select>
+          <div class="countdown-grid">
+            <div>
+              <div class="countdown-number" id="countdown-days">---</div>
+              <div class="countdown-label">روز</div>
+            </div>
+            <div>
+              <div class="countdown-number" id="countdown-hours">--</div>
+              <div class="countdown-label">ساعت</div>
+            </div>
+            <div>
+              <div class="countdown-number" id="countdown-minutes">--</div>
+              <div class="countdown-label">دقیقه</div>
+            </div>
+            <div>
+              <div class="countdown-number" id="countdown-seconds">--</div>
+              <div class="countdown-label">ثانیه</div>
+            </div>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="grade">پایه تحصیلی</label>
-          <select id="grade">
-            <option value="دوازدهم" selected>دوازدهم</option>
-            <option value="فارغ‌التحصیل">فارغ‌التحصیل</option>
-          </select>
+        <div class="stats-grid">
+          <div class="stat-card">
+            <span>⏱️ ساعت مطالعه</span>
+            <strong id="totalStudyHours">۰</strong>
+          </div>
+          <div class="stat-card">
+            <span>📚 جلسات مطالعه</span>
+            <strong id="totalSessions">۰</strong>
+          </div>
+          <div class="stat-card">
+            <span>📝 آزمون‌ها</span>
+            <strong id="totalExams">۰</strong>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="dailyHours">ساعت مطالعه روزانه</label>
-          <input id="dailyHours" type="number" min="1" max="16" value="6">
+        <div class="card" style="margin-top:18px">
+          <h3>🌱 وضعیت امروز</h3>
+          <div id="summary">
+            <p class="muted">هنوز اطلاعاتی ثبت نشده است.</p>
+          </div>
         </div>
 
-        <div class="form-group">
-          <label for="daysLeft">روزهای باقی‌مانده تا تاریخ هدف</label>
-          <input id="daysLeft" type="number" value="244" readonly>
-        </div>
-
-      </div>
-
-      <div class="notice">
-        تاریخ هدف فعلی ۱۰ تیر ۱۴۰۶ است. شمارش معکوس سایت بر اساس همین تاریخ تنظیم شده است.
-      </div>
-
-      <div class="form-actions">
-        <button class="btn" onclick="saveSetup()">ساخت برنامه مطالعاتی ✨</button>
-        <button class="btn btn-danger" onclick="clearPlan()">پاک کردن برنامه</button>
-      </div>
-    </div>
-
-    <div class="card" style="margin-top:18px">
-      <h3 class="section-title">📄 ورود سؤال از فایل PDF</h3>
-
-      <p class="muted">
-        فایل دفترچه سؤال و پاسخ‌نامه را انتخاب کن تا سؤال‌ها استخراج و برای بررسی به بانک سؤال ارسال شوند.
-      </p>
-
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="pdfSubject">درس</label>
-          <select id="pdfSubject">
-            <option value="زیست‌شناسی">زیست‌شناسی</option>
-            <option value="شیمی">شیمی</option>
-            <option value="فیزیک">فیزیک</option>
-            <option value="ریاضی">ریاضی</option>
-            <option value="زمین‌شناسی">زمین‌شناسی</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="pdfYear">سال کنکور</label>
-          <input id="pdfYear" type="number" value="1400">
-        </div>
-
-        <div class="form-group">
-          <label for="pdfSession">نوبت آزمون</label>
-          <select id="pdfSession">
-            <option value="نوبت اول">نوبت اول</option>
-            <option value="نوبت دوم">نوبت دوم</option>
-            <option value="نامشخص">نامشخص</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="pdfLocation">حوزه آزمون</label>
-          <select id="pdfLocation">
-            <option value="inside">داخل کشور</option>
-            <option value="outside">خارج کشور</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="pdfQuestions">فایل دفترچه سؤال</label>
-          <input id="pdfQuestions" type="file" accept="application/pdf">
-        </div>
-
-        <div class="form-group">
-          <label for="pdfAnswers">فایل پاسخ‌نامه</label>
-          <input id="pdfAnswers" type="file" accept="application/pdf">
-        </div>
-
-      </div>
-
-      <div class="form-actions">
-        <button class="btn" onclick="extractFromPDF()">استخراج سؤال‌ها</button>
-      </div>
-
-      <div id="pdfStatus" class="muted" style="margin-top:14px" aria-live="polite"></div>
-
-      <div class="notice">
-        سؤال‌های استخراج‌شده ابتدا با وضعیت «در انتظار تأیید» ذخیره می‌شوند و تا زمان تأیید در آزمون‌ها نمایش داده نخواهند شد.
-      </div>
-    </div>
-
-  </section>
-
-  <!-- PLAN -->
-  <section id="page-plan" class="page-section">
-
-    <div class="page-heading">
-      <h1>📚 برنامه مطالعاتی</h1>
-      <p>جلسات مطالعه را ببین، انجام‌شدن آن‌ها را ثبت کن یا جلسه جدید اضافه کن.</p>
-    </div>
-
-    <div class="card" style="margin-bottom:18px">
-      <h3 class="section-title">افزودن جلسه جدید</h3>
-
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="manualDay">روز هفته</label>
-          <select id="manualDay">
-            <option value="شنبه">شنبه</option>
-            <option value="یکشنبه">یکشنبه</option>
-            <option value="دوشنبه">دوشنبه</option>
-            <option value="سه‌شنبه">سه‌شنبه</option>
-            <option value="چهارشنبه">چهارشنبه</option>
-            <option value="پنجشنبه">پنجشنبه</option>
-            <option value="جمعه">جمعه</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="manualSubject">درس</label>
-          <select id="manualSubject">
-            <option value="زیست‌شناسی">زیست‌شناسی</option>
-            <option value="شیمی">شیمی</option>
-            <option value="فیزیک">فیزیک</option>
-            <option value="ریاضی">ریاضی</option>
-            <option value="زمین‌شناسی">زمین‌شناسی</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="manualChapter">مبحث یا فصل</label>
-          <input id="manualChapter" type="text" placeholder="مثلاً فصل اول زیست دوازدهم">
-        </div>
-
-        <div class="form-group">
-          <label for="manualMinutes">مدت مطالعه (دقیقه)</label>
-          <input id="manualMinutes" type="number" min="5" value="75">
-        </div>
-
-      </div>
-
-      <button class="btn" onclick="addManualSession()">افزودن به برنامه</button>
-    </div>
-
-    <div id="weeklyPlan">
-      <p class="empty-state">در حال بارگذاری برنامه...</p>
-    </div>
-
-  </section>
-
-  <!-- QUIZ -->
-  <section id="page-quiz" class="page-section">
-
-    <div class="page-heading">
-      <h1>📝 آزمون آنلاین</h1>
-      <p>از بانک سؤال درس موردنظرت آزمون بساز و عملکردت را بسنج.</p>
-    </div>
-
-    <div id="quizSetupArea" class="card">
-
-      <div class="form-grid">
-
-        <div class="form-group">
-          <label for="quizSubject">درس آزمون</label>
-          <select id="quizSubject">
-            <option value="زیست‌شناسی">زیست‌شناسی</option>
-            <option value="شیمی">شیمی</option>
-            <option value="فیزیک">فیزیک</option>
-            <option value="ریاضی">ریاضی</option>
-            <option value="زمین‌شناسی">زمین‌شناسی</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="quizCount">تعداد سؤال</label>
-          <select id="quizCount">
-            <option value="5">۵ سؤال</option>
-            <option value="10" selected>۱۰ سؤال</option>
-            <option value="15">۱۵ سؤال</option>
-            <option value="20">۲۰ سؤال</option>
-            <option value="30">۳۰ سؤال</option>
-            <option value="40">۴۰ سؤال</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="quizType">نوع آزمون</label>
-          <select id="quizType">
-            <option value="بدون زمان">آزمون بدون زمان</option>
-            <option value="زمان‌دار">آزمون زمان‌دار</option>
-          </select>
-        </div>
-
-      </div>
-
-      <div class="notice">
-        آزمون زمان‌دار: برای هر سؤال ۹۰ ثانیه در نظر گرفته می‌شود و با پایان زمان، آزمون خودکار ثبت می‌شود.
-        <br>
-        آزمون بدون زمان: محدودیت زمانی نداری و هر وقت آماده بودی آزمون را ثبت می‌کنی.
-      </div>
-
-      <button class="btn" onclick="createQuiz()">شروع آزمون 🚀</button>
-
-      <p class="muted" style="margin-top:12px">
-        فقط سؤال‌هایی که در بانک سؤال تأیید شده‌اند در آزمون قرار می‌گیرند.
-      </p>
-
-    </div>
-
-    <div id="quizArea" style="display:none;margin-top:18px">
-
-      <div id="quizTimer">⏱️ زمان آزمون</div>
-
-      <div id="quizQuestions"></div>
-
-      <div class="form-actions">
-        <button class="btn" onclick="submitQuiz()">ثبت و تصحیح آزمون</button>
-        <button class="btn btn-danger" onclick="exitQuiz()">خروج از آزمون</button>
-      </div>
-
-    </div>
-
-  </section>
-
-  <!-- EXAM RESULT -->
-  <section id="page-exam-result" class="page-section">
-
-    <div class="page-heading">
-      <h1>🎉 نتیجه آزمون</h1>
-      <p>عملکردت را بررسی کن و برای آزمون بعدی آماده شو.</p>
-    </div>
-
-    <div class="card" style="text-align:center">
-      <h3 id="res-subject">نتیجه آزمون</h3>
-
-      <div id="res-percent-circle" class="result-circle">
-        <span id="res-percent-text">۰٪</span>
-      </div>
-
-      <div class="result-stats">
         <div class="card">
-          <span class="muted">کل سؤال</span>
-          <strong id="res-total">۰</strong>
+          <h3>کارهای پیش رو</h3>
+          <div id="todayTasks">
+            <p class="muted">هنوز برنامه‌ای ثبت نشده است.</p>
+          </div>
         </div>
+      </section>
+
+      <!-- تنظیمات -->
+
+      <section id="page-setup" class="page-section">
+        <h2 class="page-title">تنظیمات برنامه ⚙️</h2>
+
         <div class="card">
-          <span class="muted">درست</span>
-          <strong id="res-correct">۰</strong>
+          <div class="field">
+            <label>رشته تحصیلی</label>
+            <select id="field">
+              <option value="تجربی">علوم تجربی</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>پایه تحصیلی</label>
+            <select id="grade">
+              <option value="دوازدهم">دوازدهم</option>
+              <option value="فارغ‌التحصیل">فارغ‌التحصیل</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>ساعت مطالعه روزانه</label>
+            <input id="dailyHours" type="number" min="1" max="18" value="6">
+          </div>
+
+          <div class="field">
+            <label>روزهای باقی‌مانده تا هدف</label>
+            <input id="daysLeft" type="number" value="244" readonly>
+          </div>
+
+          <button class="btn" onclick="saveSetup()">ذخیره و ساخت برنامه</button>
+          <button class="btn btn-danger" onclick="clearPlan()">پاک کردن برنامه</button>
         </div>
+
         <div class="card">
-          <span class="muted">غلط</span>
-          <strong id="res-wrong">۰</strong>
+          <h3>استخراج سؤال از PDF</h3>
+
+          <div class="field">
+            <label>درس</label>
+            <select id="pdfSubject">
+              <option value="زیست‌شناسی">زیست‌شناسی</option>
+              <option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option>
+              <option value="ریاضی">ریاضی</option>
+              <option value="زمین‌شناسی">زمین‌شناسی</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>سال کنکور</label>
+            <input id="pdfYear" type="number" value="1400">
+          </div>
+
+          <div class="field">
+            <label>نوبت آزمون</label>
+            <select id="pdfSession">
+              <option value="نوبت اول">نوبت اول</option>
+              <option value="نوبت دوم">نوبت دوم</option>
+              <option value="خارج کشور">خارج کشور</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>محل برگزاری</label>
+            <select id="pdfLocation">
+              <option value="inside">داخل کشور</option>
+              <option value="outside">خارج کشور</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>فایل PDF سؤال‌ها</label>
+            <input id="pdfQuestions" type="file" accept=".pdf">
+          </div>
+
+          <div class="field">
+            <label>فایل PDF پاسخ‌نامه</label>
+            <input id="pdfAnswers" type="file" accept=".pdf">
+          </div>
+
+          <button class="btn btn-secondary" onclick="extractFromPDF()">استخراج سؤال‌ها</button>
+          <p id="pdfStatus" class="muted"></p>
         </div>
+      </section>
+
+      <!-- برنامه درسی -->
+
+      <section id="page-plan" class="page-section">
+        <h2 class="page-title">برنامه درسی من 📅</h2>
+
         <div class="card">
-          <span class="muted">تراز تخمینی</span>
-          <strong id="res-traz">۰</strong>
+          <h3>افزودن جلسه مطالعه</h3>
+
+          <div class="field">
+            <label>روز</label>
+            <select id="manualDay">
+              <option value="شنبه">شنبه</option>
+              <option value="یکشنبه">یکشنبه</option>
+              <option value="دوشنبه">دوشنبه</option>
+              <option value="سه‌شنبه">سه‌شنبه</option>
+              <option value="چهارشنبه">چهارشنبه</option>
+              <option value="پنجشنبه">پنجشنبه</option>
+              <option value="جمعه">جمعه</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>درس</label>
+            <select id="manualSubject">
+              <option value="زیست‌شناسی">زیست‌شناسی</option>
+              <option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option>
+              <option value="ریاضی">ریاضی</option>
+              <option value="زمین‌شناسی">زمین‌شناسی</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>مدت مطالعه (دقیقه)</label>
+            <input id="manualMinutes" type="number" min="5" value="60">
+          </div>
+
+          <div class="field">
+            <label>مبحث</label>
+            <input id="manualChapter" type="text" placeholder="مثلاً فصل اول">
+          </div>
+
+          <button class="btn" onclick="addManualSession()">افزودن جلسه</button>
         </div>
-      </div>
 
-      <p class="muted">تراز نمایش‌داده‌شده تخمینی و صرفاً برای مقایسه عملکرد آزمون‌های خودت است.</p>
+        <div id="weeklyPlan"></div>
+      </section>
 
-      <div class="form-actions" style="justify-content:center">
-        <button class="btn" onclick="showPage('quiz')">آزمون جدید</button>
-        <button class="btn btn-secondary" onclick="showPage('analytics')">مشاهده تحلیل</button>
-        <button class="btn btn-secondary" onclick="showPage('dashboard')">بازگشت به خانه</button>
-      </div>
-    </div>
+      <!-- آزمون -->
 
-  </section>
+      <section id="page-quiz" class="page-section">
+        <h2 class="page-title">آزمون آنلاین 📝</h2>
 
-  <!-- ANALYTICS -->
-  <section id="page-analytics" class="page-section">
+        <div id="quizSetupArea" class="card">
+          <div class="field">
+            <label>درس</label>
+            <select id="quizSubject">
+              <option value="زیست‌شناسی">زیست‌شناسی</option>
+              <option value="شیمی">شیمی</option>
+              <option value="فیزیک">فیزیک</option>
+              <option value="ریاضی">ریاضی</option>
+              <option value="زمین‌شناسی">زمین‌شناسی</option>
+            </select>
+          </div>
 
-    <div class="page-heading">
-      <h1>📊 تحلیل عملکرد</h1>
-      <p>نتایج آزمون‌های قبلی خودت را بررسی کن.</p>
-    </div>
+          <div class="field">
+            <label>تعداد سؤال</label>
+            <select id="quizCount">
+              <option value="10">۱۰ سؤال</option>
+              <option value="20">۲۰ سؤال</option>
+              <option value="30">۳۰ سؤال</option>
+              <option value="50">۵۰ سؤال</option>
+            </select>
+          </div>
 
-    <div class="card">
-      <h3 class="section-title">تاریخچه آزمون‌ها</h3>
-      <div id="examList">
-        <p class="empty-state">هنوز آزمونی ثبت نشده است.</p>
-      </div>
-    </div>
+          <div class="field">
+            <label>نوع آزمون</label>
+            <select id="quizType">
+              <option value="بدون زمان">بدون زمان</option>
+              <option value="زمان‌دار">زمان‌دار</option>
+            </select>
+          </div>
 
-  </section>
+          <button class="btn" onclick="createQuiz()">شروع آزمون 🚀</button>
+        </div>
 
-  <!-- MISTAKES -->
-  <section id="page-mistakes" class="page-section">
+        <div id="quizArea" style="display:none">
+          <div id="quizTimer">زمان آزمون</div>
+          <div id="quizQuestions"></div>
+          <button class="btn" onclick="submitQuiz()">ثبت و تصحیح آزمون</button>
+          <button class="btn btn-danger" onclick="exitQuiz()">خروج از آزمون</button>
+        </div>
+      </section>
 
-    <div class="page-heading">
-      <h1>💡 دفترچه اشتباهات</h1>
-      <p>نکته‌ها و اشتباهاتت را ثبت کن تا دوباره تکرار نشوند.</p>
-    </div>
+      <!-- نتیجه آزمون -->
 
-    <div class="card" style="margin-bottom:18px">
-      <div class="form-group">
-        <label for="mistakeText">اشتباه یا نکته‌ای که باید مرور کنی</label>
-        <textarea id="mistakeText" placeholder="مثلاً در تست‌های ژنتیک، احتمال را اشتباه محاسبه کردم..."></textarea>
-      </div>
+      <section id="page-exam-result" class="page-section">
+        <h2 class="page-title">نتیجه آزمون 🎯</h2>
 
-      <button class="btn" onclick="addMistake()">ثبت در دفترچه</button>
-    </div>
+        <div class="card" style="text-align:center">
+          <h3 id="res-subject">درس</h3>
 
-    <div class="card">
-      <h3 class="section-title">اشتباهات ثبت‌شده</h3>
-      <ul id="mistakeList" style="list-style:none;padding:0;margin:0">
-        <li class="empty-state">هنوز موردی ثبت نشده است.</li>
-      </ul>
-    </div>
+          <div class="result-circle" id="res-percent-circle">
+            <span id="res-percent-text">۰٪</span>
+          </div>
 
-  </section>
+          <div class="stats-grid">
+            <div class="stat-card">
+              <span>تعداد سؤال</span>
+              <strong id="res-total">۰</strong>
+            </div>
+            <div class="stat-card">
+              <span>پاسخ صحیح</span>
+              <strong id="res-correct">۰</strong>
+            </div>
+            <div class="stat-card">
+              <span>پاسخ غلط</span>
+              <strong id="res-wrong">۰</strong>
+            </div>
+          </div>
 
-</main>
+          <h3>تراز تخمینی: <span id="res-traz">۰</span></h3>
+          <p class="muted">تراز نمایش‌داده‌شده تخمینی است و تراز رسمی سازمان سنجش نیست.</p>
+          <button class="btn" onclick="showPage('quiz')">آزمون جدید</button>
+        </div>
+      </section>
 
-<footer>
-  ساخته‌شده با ❤️ برای مسیر موفقیت تو در کنکور ۱۴۰۶
-</footer>
+      <!-- تحلیل عملکرد -->
+
+      <section id="page-analytics" class="page-section">
+        <h2 class="page-title">تحلیل عملکرد 📊</h2>
+        <div id="examList">
+          <div class="card muted">هنوز آزمونی ثبت نشده است.</div>
+        </div>
+      </section>
+
+      <!-- دفتر اشتباهات -->
+
+      <section id="page-mistakes" class="page-section">
+        <h2 class="page-title">دفتر اشتباهات من 📕</h2>
+
+        <div class="card">
+          <div class="field">
+            <label>ثبت اشتباه یا نکته مهم</label>
+            <textarea id="mistakeText" rows="4" placeholder="اشتباه یا نکته‌ای که باید دوباره مرور کنی..."></textarea>
+          </div>
+
+          <button class="btn" onclick="addMistake()">ثبت در دفتر اشتباهات</button>
+        </div>
+
+        <div id="mistakeList"></div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<!-- ==============================
+     شمارش معکوس
+============================== -->
 
 <script>
-  // شمارش معکوس تا تاریخ هدف: ۱۰ تیر ۱۴۰۶
-  // معادل ۱ ژوئیه ۲۰۲۷، ساعت ۰۰:۰۰ به وقت ایران
-  (function () {
-    const target = new Date("2027-06-30T20:30:00Z").getTime();
+(function () {
+  const targetDate = new Date("2027-06-30T20:30:00Z").getTime();
 
-    function updateCountdown() {
-      const remaining = Math.max(0, target - Date.now());
+  function updateCountdown() {
+    const distance = targetDate - Date.now();
 
-      const days = Math.floor(remaining / 86400000);
-      const hours = Math.floor((remaining % 86400000) / 3600000);
-      const minutes = Math.floor((remaining % 3600000) / 60000);
-      const seconds = Math.floor((remaining % 60000) / 1000);
+    const values = {
+      "countdown-days": Math.max(0, Math.floor(distance / 86400000)),
+      "countdown-hours": Math.max(0, Math.floor((distance % 86400000) / 3600000)),
+      "countdown-minutes": Math.max(0, Math.floor((distance % 3600000) / 60000)),
+      "countdown-seconds": Math.max(0, Math.floor((distance % 60000) / 1000))
+    };
 
-      const values = {
-        "countdown-days": days,
-        "countdown-hours": hours,
-        "countdown-minutes": minutes,
-        "countdown-seconds": seconds
-      };
+    Object.entries(values).forEach(([id, value]) => {
+      const element = document.getElementById(id);
+      if (element) element.textContent = value.toLocaleString("fa-IR");
+    });
+  }
 
-      Object.entries(values).forEach(([id, value]) => {
-        const element = document.getElementById(id);
-        if (element) element.textContent = value.toLocaleString("fa-IR");
-      });
-    }
-
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-  })();
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+})();
 </script>
+
+<!-- ==============================
+     اسکریپت‌های اصلی
+============================== -->
 
 <script src="js/supabase-client.js"></script>
 <script src="js/storage.js"></script>
 <script src="js/planner.js"></script>
 <script src="js/pdf-processor.js"></script>
 <script src="js/quiz-engine.js"></script>
+<script src="js/auth.js"></script>
 <script src="js/app.js"></script>
+
+<script>
+/* کنترل فرم‌های ورود و ثبت‌نام */
+
+function setAuthMessage(message, isError = false) {
+  const element = document.getElementById("authMessage");
+  if (!element) return;
+
+  element.textContent = message;
+  element.style.color = isError ? "#d45d7c" : "#26866f";
+}
+
+function showAuthMode(mode) {
+  const login = document.getElementById("loginForm");
+  const register = document.getElementById("registerForm");
+  const title = document.getElementById("authTitle");
+
+  login.style.display = mode === "login" ? "block" : "none";
+  register.style.display = mode === "register" ? "block" : "none";
+
+  title.textContent = mode === "login"
+    ? "ورود به حساب کاربری"
+    : "ساخت حساب رایگان";
+
+  setAuthMessage("");
+}
+
+document.getElementById("showRegister").addEventListener("click", event => {
+  event.preventDefault();
+  showAuthMode("register");
+});
+
+document.getElementById("showLogin").addEventListener("click", event => {
+  event.preventDefault();
+  showAuthMode("login");
+});
+
+document.getElementById("loginForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = event.currentTarget.querySelector("button");
+  button.disabled = true;
+  button.textContent = "در حال ورود...";
+
+  try {
+    const email = document.getElementById("loginEmail").value;
+    const password = document.getElementById("loginPassword").value;
+
+    const { error } = await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) throw error;
+
+    window.location.reload();
+
+  } catch (error) {
+    setAuthMessage(error.message, true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "ورود به حساب";
+  }
+});
+
+document.getElementById("registerForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = event.currentTarget.querySelector("button");
+  button.disabled = true;
+  button.textContent = "در حال ساخت حساب...";
+
+  try {
+    const email = document.getElementById("registerEmail").value;
+    const password = document.getElementById("registerPassword").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (password.length < 8) {
+      throw new Error("رمز عبور باید حداقل ۸ کاراکتر باشد.");
+    }
+
+    if (password !== confirmPassword) {
+      throw new Error("تکرار رمز عبور با رمز اصلی یکسان نیست.");
+    }
+
+    const { data, error } = await supabaseClient.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: window.location.origin + window.location.pathname
+      }
+    });
+
+    if (error) throw error;
+
+    if (data.session) {
+      setAuthMessage("حساب ساخته شد؛ در حال ورود...");
+      window.location.reload();
+    } else {
+      setAuthMessage("ثبت‌نام انجام شد. ایمیلت را برای تأیید حساب بررسی کن.");
+      showAuthMode("login");
+    }
+
+  } catch (error) {
+    setAuthMessage(error.message, true);
+  } finally {
+    button.disabled = false;
+    button.textContent = "ساخت حساب رایگان";
+  }
+});
+
+/* بررسی نشست کاربر */
+
+async function initializeAuthentication() {
+  try {
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    const user = data.session?.user || null;
+
+    const authPage = document.getElementById("authPage");
+    const appContent = document.getElementById("appContent");
+
+    if (user) {
+      authPage.style.display = "none";
+      appContent.style.display = "block";
+
+      document.getElementById("userEmail").textContent = user.email || "";
+
+      if (typeof init === "function") {
+        await init();
+      }
+
+    } else {
+      appContent.style.display = "none";
+      authPage.style.display = "flex";
+    }
+
+  } catch (error) {
+    console.error("Auth initialization error:", error);
+    document.getElementById("authPage").style.display = "flex";
+    setAuthMessage("اتصال به حساب کاربری برقرار نشد. صفحه را دوباره بارگذاری کن.", true);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", initializeAuthentication);
+</script>
 
 </body>
 </html>
