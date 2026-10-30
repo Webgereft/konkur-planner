@@ -1,15 +1,30 @@
+
 /* =====================================
    سیستم مدیریت پروفایل کنکوریار
 ===================================== */
 
+// دریافت کاربر از نشست مستقیم Supabase
 const PROFILE = {
 
-  async get() {
-    const user = await AUTH.getUser();
+  async getCurrentUser() {
+    const { data, error } =
+      await supabaseClient.auth.getSession();
+
+    if (error) throw error;
+
+    const user = data?.session?.user;
 
     if (!user || !user.id) {
-      throw new Error("کاربر وارد حساب کاربری نشده است. لطفاً دوباره وارد شو.");
+      throw new Error(
+        "نشست ورود پیدا نشد. لطفاً ابتدا وارد حساب کاربری شو."
+      );
     }
+
+    return user;
+  },
+
+  async get() {
+    const user = await this.getCurrentUser();
 
     const { data, error } = await supabaseClient
       .from("student_profiles")
@@ -23,11 +38,7 @@ const PROFILE = {
   },
 
   async save(firstName, lastName) {
-    const user = await AUTH.getUser();
-
-    if (!user || !user.id) {
-      throw new Error("نشست کاربری معتبر نیست. لطفاً خارج شو و دوباره وارد شو.");
-    }
+    const user = await this.getCurrentUser();
 
     const profile = {
       user_id: user.id,
@@ -57,13 +68,6 @@ const PROFILE = {
 
 async function loadProfile() {
   try {
-    const user = await AUTH.getUser();
-
-    if (!user || !user.id) {
-      console.warn("کاربر وارد حساب نشده است.");
-      return;
-    }
-
     const profile = await PROFILE.get();
 
     const firstNameInput =
@@ -83,11 +87,12 @@ async function loadProfile() {
   } catch (error) {
     console.error("Profile loading error:", error);
 
-    const message = document.getElementById("profileMessage");
+    const message =
+      document.getElementById("profileMessage");
 
     if (message) {
       message.textContent =
-        "دریافت اطلاعات پروفایل ناموفق بود: " + error.message;
+        "دریافت اطلاعات ناموفق بود: " + error.message;
 
       message.style.color = "red";
     }
@@ -119,7 +124,9 @@ async function saveProfile() {
   const lastName = lastNameInput.value.trim();
 
   if (!firstName || !lastName) {
-    message.textContent = "نام و نام خانوادگی را وارد کن.";
+    message.textContent =
+      "لطفاً نام و نام خانوادگی را وارد کن.";
+
     message.style.color = "red";
     return;
   }
@@ -127,17 +134,14 @@ async function saveProfile() {
   try {
     message.textContent = "در حال ذخیره اطلاعات...";
 
-    const savedProfile = await PROFILE.save(
-      firstName,
-      lastName
-    );
+    message.style.color = "inherit";
+
+    await PROFILE.save(firstName, lastName);
 
     message.textContent =
-      "اطلاعات پروفایل با موفقیت ذخیره شد 💜";
+      "اطلاعات با موفقیت ذخیره شد 💜";
 
     message.style.color = "green";
-
-    console.log("Profile saved:", savedProfile);
 
   } catch (error) {
     console.error("Profile saving error:", error);
