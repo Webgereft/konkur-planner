@@ -1,9 +1,36 @@
 
+"use strict";
+
 const WORKER_URL = "https://konkorsaz.webgereft.workers.dev";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc =
-  "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+if (typeof pdfjsLib !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+}
 
+// نگهداری تنظیمات آخرین پردازش
+let lastPDFImport = {
+  subject: "",
+  examYear: null,
+  examSession: "",
+  examLocation: "inside"
+};
+
+function getPDFElementValue(id, fallback = "") {
+  const element = document.getElementById(id);
+  return element ? element.value.trim() : fallback;
+}
+
+function getPDFImportSettings() {
+  return {
+    subject: getPDFElementValue("pdfSubject", "زیست‌شناسی"),
+    examYear: Number(getPDFElementValue("pdfYear", "")) || null,
+    examSession: getPDFElementValue("pdfSession", ""),
+    examLocation: getPDFElementValue("pdfLocation", "inside")
+  };
+}
+
+// پردازش اصلی PDF
 async function extractFromPDF() {
   const questionFile =
     document.getElementById("pdfQuestions")?.files?.[0];
@@ -19,80 +46,73 @@ async function extractFromPDF() {
     'button[onclick="extractFromPDF()"]'
   );
 
-  if (!questionFile) {
-    alert("لطفاً فایل PDF سوالات را انتخاب کنید.");
+  const status = document.getElementById("pdfStatus");
+
+  function updateStatus(message) {
+    if (status) status.innerText = message;
+    if (button) button.innerText = message;
+  }
+
+  if (!questionFile || !answerFile) {
+    alert("لطفاً هر دو فایل سؤال و پاسخ‌نامه را انتخاب کن.");
     return;
   }
 
-  if (!answerFile) {
-    alert("لطفاً فایل PDF پاسخنامه را هم انتخاب کنید.");
+  if (
+    typeof supabaseClient === "undefined" ||
+    typeof pdfjsLib === "undefined"
+  ) {
+    alert("کتابخانه PDF یا اتصال Supabase بارگذاری نشده است.");
     return;
   }
 
   try {
-    if (button) {
-      button.disabled = true;
-      button.innerText = "در حال خواندن PDFها...";
-    }
+    if (button) button.disabled = true;
+
+    updateStatus("در حال خواندن فایل‌ها...");
+
+    const settings = getPDFImportSettings();
 
     const questionText = await readPDFText(questionFile);
     const answerText = await readPDFText(answerFile);
 
     if (questionText.trim().length < 100) {
       throw new Error(
-        "متن سوالات استخراج نشد؛ ممکن است PDF اسکن‌شده باشد."
+        "متن سؤال استخراج نشد. احتمالاً PDF اسکن‌شده است."
       );
     }
 
     if (answerText.trim().length < 10) {
       throw new Error(
-        "متن پاسخنامه استخراج نشد؛ ممکن است PDF اسکن‌شده باشد."
+        "متن پاسخ‌نامه استخراج نشد."
       );
     }
 
-    if (button) {
-      button.innerText = "هوش مصنوعی در حال تطبیق پاسخ‌ها...";
-    }
+    updateStatus("هوش مصنوعی در حال استخراج سؤال‌ها...");
 
     const questions = await extractQuestionsWithAI(
       questionText,
       answerText
     );
 
+    if (!questions.length) {
+      throw new Error("سؤالی از فایل‌ها استخراج نشد.");
+    }
+
     const rows = questions
-      .map((q) => {
-        const options = Array.isArray(q.options)
-          ? q.options.map((x) => String(x))
-          : [];
+      .map(question => convertQuestionToDatabaseRow(
+        question,
+        settings
+      ))
+      .filter(Boolean);
 
-        const answerIsValid =
-          Number.isInteger(q.answer) &&
-          q.answer >= 0 &&
-          q.answer < options.length;
-
-        return {
-          subject: "نامشخص",
-          grade: "نامشخص",
-          chapter: "عمومی",
-          question_text: String(q.q || "").trim(),
-          options,
-          correct_answer: answerIsValid ? q.answer : null
-        };
-      })
-      .filter((q) =>
-        q.question_text.length > 0 &&
-        q.options.length >= 2
-      );
-
-    if (rows.length === 0) {
+    if (!rows.length) {
       throw new Error(
-        "سوال معتبری برای ذخیره پیدا نشد."
+        "هیچ سؤال معتبری برای ذخیره‌سازی وجود ندارد."
       );
     }
 
-    if (button) {
-      button.innerText = "در حال ذخیره در Supabase...";
-    }
+    updateStatus("در حال ذخیره سؤال‌ها در Supabase...");
 
     let savedCount = 0;
 
@@ -107,7 +127,7 @@ async function extractFromPDF() {
       if (error) {
         console.error("Supabase error:", error);
         throw new Error(
-          "خطای ذخیره در Supabase: " + error.message
+          "ذخیره‌سازی ناموفق بود: " + error.message
         );
       }
 
@@ -115,24 +135,30 @@ async function extractFromPDF() {
     }
 
     const unknownCount = rows.filter(
-      (q) => q.correct_answer === null
+      row => row.correct_answer === null
     ).length;
 
-    alert(
-      `پردازش تمام شد!\n` +
-      `سوال‌های ذخیره‌شده: ${savedCount}\n` +
-      `پاسخ‌های نامشخص: ${unknownCount}` +
-      (unknownCount
-        ? "\nپاسخ‌های نامشخص را قبل از آزمون بررسی کن."
-        : "")
-    );
+    lastPDFImport = settings;
+
+    const report =
+      `پردازش انجام شد!\n\n` +
+      `تعداد سؤال‌های استخراج‌شده: ${questions.length}\n` +
+      `تعداد سؤال‌های ذخیره‌شده: ${savedCount}\n` +
+      `پاسخ‌های نامشخص: ${unknownCount}\n\n` +
+      `وضعیت سؤال‌ها: در انتظار بررسی`;
+
+    updateStatus("پردازش با موفقیت تمام شد.");
+
+    alert(report);
 
   } catch (error) {
     console.error("PDF processing error:", error);
 
+    updateStatus("خطا در پردازش فایل‌ها");
+
     alert(
       "خطا در پردازش:\n" +
-      (error?.message || String(error))
+      (error.message || String(error))
     );
 
   } finally {
@@ -143,8 +169,58 @@ async function extractFromPDF() {
   }
 }
 
+// تبدیل سؤال استخراج‌شده به قالب جدول Supabase
+function convertQuestionToDatabaseRow(question, settings) {
+  if (!question || typeof question !== "object") {
+    return null;
+  }
 
-// استخراج متن صفحات PDF با PDF.js
+  const options = Array.isArray(question.options)
+    ? question.options.map(value => String(value || "").trim())
+    : [];
+
+  if (
+    !question.q ||
+    String(question.q).trim().length < 3 ||
+    options.length !== 4 ||
+    options.some(option => !option)
+  ) {
+    return null;
+  }
+
+  const answer = Number.isInteger(question.answer) &&
+    question.answer >= 0 &&
+    question.answer <= 3
+      ? question.answer + 1
+      : null;
+
+  return {
+    subject: settings.subject,
+    exam_year: settings.examYear,
+    exam_session: settings.examSession || null,
+    question_number: Number(question.number) || null,
+
+    question_text: String(question.q).trim(),
+
+    option_a: options[0],
+    option_b: options[1],
+    option_c: options[2],
+    option_d: options[3],
+
+    correct_answer: answer,
+
+    explanation: question.explanation
+      ? String(question.explanation)
+      : null,
+
+    source: "PDF + AI extraction",
+    exam_location: settings.examLocation,
+
+    verification_status: "pending"
+  };
+}
+
+// خواندن متن PDF
 async function readPDFText(file) {
   if (!file || file.type !== "application/pdf") {
     throw new Error("فایل انتخاب‌شده باید PDF باشد.");
@@ -158,14 +234,16 @@ async function readPDFText(file) {
 
   const pageTexts = [];
 
-  for (let pageNumber = 1;
-       pageNumber <= pdf.numPages;
-       pageNumber++) {
+  for (
+    let pageNumber = 1;
+    pageNumber <= pdf.numPages;
+    pageNumber++
+  ) {
     const page = await pdf.getPage(pageNumber);
     const content = await page.getTextContent();
 
     const text = content.items
-      .map((item) => item.str || "")
+      .map(item => item.str || "")
       .join(" ");
 
     pageTexts.push(
@@ -176,46 +254,54 @@ async function readPDFText(file) {
   return pageTexts.join("\n\n");
 }
 
-
-// ارسال متن سوالات و پاسخنامه به Worker
+// استخراج سؤال‌ها با هوش مصنوعی
 async function extractQuestionsWithAI(
   questionText,
   answerText
 ) {
-  // محدودیت ساده برای جلوگیری از ارسال متن بسیار حجیم
   const maxCharsPerFile = 20000;
 
   const prompt = `
-متن زیر از PDF سوالات و PDF پاسخنامه یک آزمون استخراج شده است.
+متن زیر از PDF سؤال‌ها و PDF پاسخ‌نامه یک آزمون استخراج شده است.
 
 وظایف:
-1. تمام سوالات قابل شناسایی را استخراج کن.
-2. متن سوال و گزینه‌ها را تا حد امکان دقیق و به ترتیب اصلی حفظ کن.
-3. شماره سوال را در فیلد number ثبت کن.
-4. پاسخنامه را با شماره سوال‌ها تطبیق بده.
+1. تمام سؤال‌های قابل شناسایی را استخراج کن.
+2. متن سؤال و چهار گزینه را دقیق حفظ کن.
+3. شماره اصلی هر سؤال را در number قرار بده.
+4. پاسخ‌نامه را با شماره سؤال تطبیق بده.
 5. answer اندیس صفرمبنای گزینه صحیح باشد:
-   گزینه اول = 0، دوم = 1، سوم = 2، چهارم = 3.
+   گزینه اول = 0
+   گزینه دوم = 1
+   گزینه سوم = 2
+   گزینه چهارم = 3
 6. اگر پاسخ مشخص نیست، answer را null قرار بده.
-7. پاسخ را حدس نزن و پاسخ نامعلوم را صفر نگذار.
-8. اگر پاسخنامه فقط حرف یا شماره گزینه دارد، آن را با گزینه‌های همان سوال تطبیق بده.
-9. فقط JSON معتبر برگردان، بدون Markdown و توضیح اضافی.
+7. پاسخ را حدس نزن.
+8. اگر پاسخ‌نامه شماره گزینه دارد، آن را به اندیس صفرمبنا تبدیل کن.
+9. متن توضیح پاسخ را در explanation قرار بده، اگر موجود بود.
+10. فقط JSON معتبر تولید کن.
 
-ساختار خروجی:
+ساختار:
 {
   "questions": [
     {
       "number": 1,
-      "q": "متن کامل سوال",
-      "options": ["گزینه اول", "گزینه دوم", "گزینه سوم", "گزینه چهارم"],
-      "answer": 0
+      "q": "متن سؤال",
+      "options": [
+        "گزینه اول",
+        "گزینه دوم",
+        "گزینه سوم",
+        "گزینه چهارم"
+      ],
+      "answer": 0,
+      "explanation": ""
     }
   ]
 }
 
-متن PDF سوالات:
+متن سؤال‌ها:
 ${questionText.substring(0, maxCharsPerFile)}
 
-متن PDF پاسخنامه:
+متن پاسخ‌نامه:
 ${answerText.substring(0, maxCharsPerFile)}
 `;
 
@@ -238,25 +324,20 @@ ${answerText.substring(0, maxCharsPerFile)}
         }
       })
     });
+
   } catch (error) {
     throw new Error(
-      "ارتباط با Worker برقرار نشد. آدرس و اتصال اینترنت را بررسی کن. " +
-      "جزئیات: " + (error.message || String(error))
+      "ارتباط با سرور هوش مصنوعی برقرار نشد: " +
+      error.message
     );
   }
 
   const responseText = await response.text();
 
   if (!response.ok) {
-    console.error(
-      "Worker/Gemini HTTP error:",
-      response.status,
-      responseText
-    );
-
     throw new Error(
-      `خطای Worker یا Gemini (${response.status}): ` +
-      responseText.substring(0, 1000)
+      `خطای سرور (${response.status}): ` +
+      responseText.substring(0, 500)
     );
   }
 
@@ -265,29 +346,21 @@ ${answerText.substring(0, maxCharsPerFile)}
   try {
     data = JSON.parse(responseText);
   } catch {
-    throw new Error(
-      "Worker پاسخ JSON معتبر برنگرداند: " +
-      responseText.substring(0, 300)
-    );
+    throw new Error("پاسخ سرور JSON معتبر نیست.");
   }
 
   if (data?.error) {
     throw new Error(
-      data.error.message ||
-      JSON.stringify(data.error)
+      data.error.message || "خطای هوش مصنوعی"
     );
   }
 
   const aiText = data?.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text || "")
+    ?.map(part => part.text || "")
     .join("");
 
   if (!aiText) {
-    console.error("Unexpected Gemini response:", data);
-
-    throw new Error(
-      "پاسخ Gemini خالی است یا ساختار مورد انتظار را ندارد."
-    );
+    throw new Error("پاسخ هوش مصنوعی خالی است.");
   }
 
   let parsed;
@@ -296,7 +369,7 @@ ${answerText.substring(0, maxCharsPerFile)}
     parsed = JSON.parse(aiText);
   } catch {
     throw new Error(
-      "هوش مصنوعی خروجی JSON معتبر تولید نکرد."
+      "خروجی هوش مصنوعی JSON معتبر نیست."
     );
   }
 
@@ -305,9 +378,7 @@ ${answerText.substring(0, maxCharsPerFile)}
     : parsed.questions;
 
   if (!Array.isArray(questions)) {
-    throw new Error(
-      "آرایه سوالات در پاسخ هوش مصنوعی پیدا نشد."
-    );
+    throw new Error("فهرست سؤال‌ها پیدا نشد.");
   }
 
   return questions;
