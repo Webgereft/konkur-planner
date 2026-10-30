@@ -182,7 +182,6 @@
     </div>
   </header>
 
-  <!-- مدیریت کاربران -->
   <section id="users" class="tab-content active">
 
     <div class="panel">
@@ -258,7 +257,6 @@
 
   </section>
 
-  <!-- بانک سؤالات -->
   <section id="questions" class="tab-content">
 
     <div class="panel">
@@ -357,27 +355,18 @@
 <script>
 "use strict";
 
-/* تنظیمات اتصال */
-const SUPABASE_URL =
-  "https://fvkzvfumabhhqzozxwlb.supabase.co";
+/* تنظیمات اتصال به Supabase */
+const SUPABASE_URL = 'https://fvkzvfumabhhqzozxwlb.supabase.co';
 
-/*
-  کلید عمومی Publishable یا anon را از تنظیمات پروژه وارد کن.
-  هرگز service_role را در این فایل قرار نده.
-*/
-const SUPABASE_ANON_KEY =
-  "کلید_عمومی_پروژه_را_اینجا_قرار_بده";
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2a3p2ZnVtYWJoaHF6b3p4d2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDAzNzAsImV4cCI6MjEwODA3NjM3MH0.R4qUmFcN_c1U3wtYJoIPlg-BEt5yoeEl2Uo1cW62MNM';
 
-const db = window.supabase.createClient(
-  SUPABASE_URL,
-  SUPABASE_ANON_KEY
-);
+// ساخت کلاینت Supabase
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let adminUsers = [];
 
 const $ = id => document.getElementById(id);
 
-/* جلوگیری از تزریق HTML */
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, char => ({
     "&": "&amp;",
@@ -398,23 +387,14 @@ function faDate(value) {
   return date.toLocaleDateString("fa-IR");
 }
 
-/* تغییر تب */
 function showTab(tab) {
   document.querySelectorAll(".tab-content").forEach(section => {
     section.classList.toggle("active", section.id === tab);
   });
 }
 
-/* بررسی ورود و دسترسی مدیر */
 async function initializeAdmin() {
   const loginStatus = $("loginStatus");
-
-  if (SUPABASE_ANON_KEY.includes("اینجا_قرار_بده")) {
-    loginStatus.textContent =
-      "خطا: ابتدا کلید عمومی Supabase را در کد قرار بده.";
-    loginStatus.className = "error";
-    return;
-  }
 
   try {
     const {
@@ -434,9 +414,7 @@ async function initializeAdmin() {
       .eq("id", user.id)
       .maybeSingle();
 
-    if (adminError) {
-      throw adminError;
-    }
+    if (adminError) throw adminError;
 
     if (!admin) {
       loginStatus.textContent =
@@ -457,7 +435,6 @@ async function initializeAdmin() {
   }
 }
 
-/* دریافت اطلاعات از Edge Function */
 async function loadDashboard() {
   $("dashboardStatus").textContent =
     "در حال دریافت اطلاعات کاربران...";
@@ -518,7 +495,6 @@ async function refreshDashboard() {
   await loadDashboard();
 }
 
-/* جست‌وجوی کاربران */
 function filterUsers() {
   const query = $("userSearch").value
     .trim()
@@ -561,7 +537,6 @@ function filterUsers() {
   `).join("");
 }
 
-/* نمایش جزئیات دانش‌آموز */
 function showUser(id) {
   const user = adminUsers.find(item => item.id === id);
 
@@ -587,7 +562,6 @@ function showUser(id) {
   `;
 }
 
-/* افزودن سؤال */
 $("questionForm").addEventListener("submit", async event => {
   event.preventDefault();
 
@@ -625,7 +599,6 @@ $("questionForm").addEventListener("submit", async event => {
   status.className = "muted";
 
   try {
-    /* بررسی مجدد هویت */
     const {
       data: { user },
       error: authError
@@ -635,7 +608,6 @@ $("questionForm").addEventListener("submit", async event => {
       throw new Error("ابتدا وارد حساب مدیر شو.");
     }
 
-    /* بررسی عضویت در admin_users */
     const { data: admin, error: adminError } = await db
       .from("admin_users")
       .select("id")
@@ -646,7 +618,6 @@ $("questionForm").addEventListener("submit", async event => {
       throw new Error("دسترسی مدیر تأیید نشد.");
     }
 
-    /* ثبت سؤال؛ امنیت نهایی باید با RLS کنترل شود */
     const { error } = await db
       .from("questions_bank")
       .insert(record);
@@ -674,7 +645,6 @@ $("questionForm").addEventListener("submit", async event => {
   }
 });
 
-/* خروج از حساب */
 async function logoutAdmin() {
   const { error } = await db.auth.signOut();
 
@@ -686,7 +656,6 @@ async function logoutAdmin() {
   window.location.href = "./";
 }
 
-/* شروع */
 initializeAdmin();
 </script>
 
