@@ -1,659 +1,424 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#2457c5">
-  <title>پنل مدیریت | KonkurYar</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2457c5">
+<title>پنل مدیریت | KonkurYar</title>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <style>
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      padding: 20px;
-      font-family: Tahoma, sans-serif;
-      background: #f3f5f9;
-      color: #182033;
-    }
-
-    button, input, select, textarea { font: inherit; }
-
-    .container { max-width: 1100px; margin: auto; }
-
-    .header, .panel, .stat {
-      background: white;
-      border-radius: 14px;
-      padding: 20px;
-      margin-bottom: 18px;
-      box-shadow: 0 4px 18px #00000009;
-    }
-
-    h1, h2 { margin-top: 0; }
-    h1 { color: #2457c5; font-size: 23px; }
-    h2 { font-size: 19px; }
-
-    button {
-      border: 0;
-      border-radius: 9px;
-      padding: 12px 18px;
-      background: #2457c5;
-      color: white;
-      cursor: pointer;
-    }
-
-    button:disabled { opacity: .6; cursor: wait; }
-    button.secondary { background: #64748b; }
-
-    .tabs { display: flex; gap: 10px; flex-wrap: wrap; }
-
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
-
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-    }
-
-    .stat { margin: 0; }
-    .stat small { color: #64748b; }
-
-    .stat strong {
-      display: block;
-      margin-top: 10px;
-      font-size: 25px;
-      color: #2457c5;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 12px;
-      border: 1px solid #d8deea;
-      border-radius: 9px;
-      background: white;
-      margin-top: 7px;
-    }
-
-    label {
-      display: block;
-      margin: 14px 0;
-      font-weight: bold;
-    }
-
-    textarea { min-height: 90px; resize: vertical; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 12px;
-    }
-
-    .answers {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 10px;
-    }
-
-    .answer {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: #f3f5f9;
-      padding: 12px;
-      border-radius: 9px;
-    }
-
-    .answer input { width: auto; margin: 0; }
-
-    .table-wrap { overflow-x: auto; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      min-width: 750px;
-    }
-
-    th, td {
-      padding: 12px;
-      text-align: right;
-      border-bottom: 1px solid #e5eaf1;
-      white-space: nowrap;
-    }
-
-    th { background: #f5f7fb; }
-
-    #status, #dashboardStatus, #loginStatus {
-      line-height: 1.9;
-      overflow-wrap: anywhere;
-    }
-
-    .error { color: #c62828; }
-    .success { color: #16803c; }
-    .muted { color: #64748b; font-size: 13px; }
-
-    #loginBox { max-width: 480px; margin: 70px auto; }
-
-    .details {
-      background: #f7f8fc;
-      border-radius: 12px;
-      padding: 15px;
-      line-height: 2;
-    }
-
-    .details p { margin: 5px 0; }
-
-    .back-link {
-      color: #2457c5;
-      text-decoration: none;
-      font-size: 13px;
-    }
-
-    @media(max-width: 600px) {
-      body { padding: 10px; }
-      .grid, .answers { grid-template-columns: 1fr; }
-      .header, .panel { padding: 15px; }
-    }
-  </style>
+<style>
+*{box-sizing:border-box}
+body{margin:0;padding:18px;font-family:Tahoma,sans-serif;background:#f3f5f9;color:#182033}
+button,input,select,textarea{font:inherit}
+.container{max-width:1150px;margin:auto}
+.header,.panel,.stat{background:white;border-radius:14px;padding:19px;margin-bottom:17px;box-shadow:0 4px 18px #00000009}
+h1{color:#2457c5;font-size:23px}
+h2{font-size:19px;margin-top:0}
+button{border:0;border-radius:9px;padding:11px 16px;background:#2457c5;color:white;cursor:pointer}
+button:disabled{opacity:.6;cursor:wait}
+button.secondary{background:#64748b}
+.tabs{display:flex;gap:9px;flex-wrap:wrap}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.stat{margin:0}
+.stat small{color:#64748b}
+.stat strong{display:block;margin-top:10px;font-size:25px;color:#2457c5}
+input,select,textarea{width:100%;padding:11px;border:1px solid #d8deea;border-radius:9px;background:white;margin-top:7px}
+label{display:block;margin:13px 0;font-weight:bold}
+textarea{min-height:90px;resize:vertical}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+.answers{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.answer{display:flex;align-items:center;gap:8px;background:#f3f5f9;padding:12px;border-radius:9px}
+.answer input{width:auto;margin:0}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:700px}
+th,td{padding:12px;text-align:right;border-bottom:1px solid #e5eaf1;white-space:nowrap}
+th{background:#f5f7fb}
+.muted{color:#64748b;font-size:13px}
+.error{color:#c62828}
+.success{color:#16803c}
+.details{background:#f7f8fc;border-radius:12px;padding:15px;line-height:2}
+.subject-list{display:flex;gap:9px;flex-wrap:wrap}
+.subject-chip{background:#edf2ff;color:#2457c5;border-radius:20px;padding:9px 15px}
+.back-link{color:#2457c5;text-decoration:none;font-size:13px}
+@media(max-width:600px){body{padding:10px}.grid,.answers{grid-template-columns:1fr}.header,.panel{padding:14px}}
+</style>
 </head>
 
 <body>
 
-<div id="loginBox" class="panel">
-  <h2>ورود به مدیریت 🛡️</h2>
-  <p>برای ورود ابتدا با حساب مدیر در سایت کنکوریار وارد شو.</p>
-  <p id="loginStatus" class="muted">در حال بررسی حساب کاربری...</p>
-  <a class="back-link" href="./">بازگشت به سایت اصلی</a>
+<main class="container" id="adminApp">
+
+<header class="header">
+<h1>پنل مدیریت KonkurYar 🛡️</h1>
+<p>مدیریت کاربران، درس‌ها و بانک سؤالات کنکور</p>
+
+<div class="tabs">
+<button onclick="showTab('users')">مدیریت کاربران</button>
+<button onclick="showTab('questions')">بانک سؤالات</button>
+<button onclick="showTab('subjects')">مدیریت درس‌ها</button>
+<button class="secondary" onclick="refreshDashboard()">بازخوانی اطلاعات</button>
+<button class="secondary" onclick="logoutAdmin()">خروج</button>
+</div>
+</header>
+
+<section id="users" class="tab-content active">
+
+<div class="panel">
+<h2>آمار کلی سایت 📊</h2>
+
+<div class="stats">
+<div class="stat"><small>کل کاربران</small><strong id="totalUsers">۰</strong></div>
+<div class="stat"><small>ثبت‌نام امروز</small><strong id="todayUsers">۰</strong></div>
+<div class="stat"><small>ثبت‌نام این ماه</small><strong id="monthUsers">۰</strong></div>
+<div class="stat"><small>کاربران فعال هفته</small><strong id="activeUsers">۰</strong></div>
+<div class="stat"><small>کل آزمون‌ها</small><strong id="totalExams">۰</strong></div>
 </div>
 
-<main class="container" id="adminApp" hidden>
+<p id="dashboardStatus" class="muted"></p>
+</div>
 
-  <header class="header">
-    <h1>پنل مدیریت KonkurYar</h1>
-    <p>مدیریت کاربران و بانک سؤالات کنکور</p>
+<div class="panel">
+<h2>فهرست دانش‌آموزان 👨‍🎓</h2>
 
-    <div class="tabs">
-      <button type="button" onclick="showTab('users')">مدیریت کاربران</button>
-      <button type="button" onclick="showTab('questions')">بانک سؤالات</button>
-      <button type="button" class="secondary" onclick="refreshDashboard()">بازخوانی اطلاعات</button>
-      <button type="button" class="secondary" onclick="logoutAdmin()">خروج</button>
-    </div>
-  </header>
+<input id="userSearch" type="search" placeholder="جست‌وجو با ایمیل..." oninput="filterUsers()">
 
-  <section id="users" class="tab-content active">
+<div class="table-wrap">
+<table>
+<thead>
+<tr>
+<th>ایمیل</th>
+<th>تاریخ عضویت</th>
+<th>تأیید ایمیل</th>
+<th>ساعت مطالعه</th>
+<th>جلسات</th>
+<th>آزمون</th>
+<th>میانگین درصد</th>
+<th>جزئیات</th>
+</tr>
+</thead>
+<tbody id="usersTable">
+<tr><td colspan="8">در حال دریافت اطلاعات...</td></tr>
+</tbody>
+</table>
+</div>
+</div>
 
-    <div class="panel">
-      <h2>آمار کلی سایت 📊</h2>
+<div class="panel">
+<h2>جزئیات دانش‌آموز</h2>
+<div id="userDetails" class="muted">برای مشاهده جزئیات، یک دانش‌آموز را انتخاب کن.</div>
+</div>
 
-      <div class="stats">
-        <div class="stat">
-          <small>کل کاربران</small>
-          <strong id="totalUsers">۰</strong>
-        </div>
+</section>
 
-        <div class="stat">
-          <small>ثبت‌نام امروز</small>
-          <strong id="todayUsers">۰</strong>
-        </div>
+<section id="subjects" class="tab-content">
+<div class="panel">
+<h2>درس‌های فعال 📚</h2>
+<p class="muted">درس‌ها از جدول subjects در Supabase دریافت می‌شوند.</p>
+<div id="subjectList" class="subject-list">در حال دریافت...</div>
+<p id="subjectStatus" class="muted"></p>
+</div>
+</section>
 
-        <div class="stat">
-          <small>ثبت‌نام این ماه</small>
-          <strong id="monthUsers">۰</strong>
-        </div>
+<section id="questions" class="tab-content">
+<div class="panel">
+<h2>افزودن سؤال به بانک سؤالات 📝</h2>
+<p class="muted">سؤال‌های جدید با وضعیت در انتظار بررسی ذخیره می‌شوند.</p>
 
-        <div class="stat">
-          <small>کاربران فعال هفته</small>
-          <strong id="activeUsers">۰</strong>
-        </div>
+<form id="questionForm">
 
-        <div class="stat">
-          <small>کل آزمون‌ها</small>
-          <strong id="totalExams">۰</strong>
-        </div>
-      </div>
+<div class="grid">
 
-      <p id="dashboardStatus" class="muted"></p>
-    </div>
+<label>درس
+<select id="subject" required>
+<option value="">در حال دریافت درس‌ها...</option>
+</select>
+</label>
 
-    <div class="panel">
-      <h2>فهرست دانش‌آموزان 👨‍🎓</h2>
+<label>سال کنکور
+<input id="year" type="number" min="1390" max="1500" value="1400" required>
+</label>
 
-      <input
-        id="userSearch"
-        type="search"
-        placeholder="جست‌وجو با ایمیل..."
-        oninput="filterUsers()">
+<label>نوبت آزمون
+<select id="session">
+<option value="نوبت اول">نوبت اول</option>
+<option value="نوبت دوم">نوبت دوم</option>
+</select>
+</label>
 
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>ایمیل</th>
-              <th>تاریخ عضویت</th>
-              <th>تأیید ایمیل</th>
-              <th>ساعت مطالعه</th>
-              <th>جلسات تکمیل‌شده</th>
-              <th>تعداد آزمون</th>
-              <th>میانگین درصد</th>
-              <th>جزئیات</th>
-            </tr>
-          </thead>
+<label>شماره سؤال
+<input id="number" type="number" min="1" required>
+</label>
 
-          <tbody id="usersTable">
-            <tr><td colspan="8">در حال دریافت اطلاعات...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
+</div>
 
-    <div class="panel">
-      <h2>جزئیات دانش‌آموز</h2>
-      <div id="userDetails" class="muted">
-        برای مشاهده جزئیات، یک دانش‌آموز را انتخاب کن.
-      </div>
-    </div>
+<label>متن سؤال
+<textarea id="question" required></textarea>
+</label>
 
-  </section>
+<label>گزینه الف<input id="a" required></label>
+<label>گزینه ب<input id="b" required></label>
+<label>گزینه ج<input id="c" required></label>
+<label>گزینه د<input id="d" required></label>
 
-  <section id="questions" class="tab-content">
+<label>پاسخ صحیح</label>
 
-    <div class="panel">
-      <h2>افزودن سؤال به بانک سؤالات 📝</h2>
+<div class="answers">
+<label class="answer"><input type="radio" name="correct" value="1" required> الف</label>
+<label class="answer"><input type="radio" name="correct" value="2"> ب</label>
+<label class="answer"><input type="radio" name="correct" value="3"> ج</label>
+<label class="answer"><input type="radio" name="correct" value="4"> د</label>
+</div>
 
-      <p class="muted">
-        سؤال‌های ثبت‌شده با وضعیت در انتظار بررسی در بانک ذخیره می‌شوند.
-      </p>
+<label>توضیح پاسخ
+<textarea id="explanation" placeholder="توضیح پاسخ اختیاری"></textarea>
+</label>
 
-      <form id="questionForm">
+<button id="saveButton" type="submit">ذخیره سؤال</button>
+<p id="status" role="status"></p>
 
-        <div class="grid">
-
-          <label>درس
-            <select id="subject" required>
-              <option value="زیست‌شناسی">زیست‌شناسی</option>
-              <option value="شیمی">شیمی</option>
-              <option value="فیزیک">فیزیک</option>
-              <option value="ریاضی">ریاضی</option>
-              <option value="زمین‌شناسی">زمین‌شناسی</option>
-            </select>
-          </label>
-
-          <label>سال کنکور
-            <input id="year" type="number" min="1390" max="1500" value="1400" required>
-          </label>
-
-          <label>نوبت آزمون
-            <select id="session">
-              <option value="نوبت اول">نوبت اول</option>
-              <option value="نوبت دوم">نوبت دوم</option>
-            </select>
-          </label>
-
-          <label>شماره سؤال
-            <input id="number" type="number" min="1" required>
-          </label>
-
-        </div>
-
-        <label>متن سؤال
-          <textarea id="question" required></textarea>
-        </label>
-
-        <label>گزینه الف
-          <input id="a" required>
-        </label>
-
-        <label>گزینه ب
-          <input id="b" required>
-        </label>
-
-        <label>گزینه ج
-          <input id="c" required>
-        </label>
-
-        <label>گزینه د
-          <input id="d" required>
-        </label>
-
-        <label>پاسخ صحیح</label>
-
-        <div class="answers">
-          <label class="answer">
-            <input type="radio" name="correct" value="1" required> الف
-          </label>
-
-          <label class="answer">
-            <input type="radio" name="correct" value="2"> ب
-          </label>
-
-          <label class="answer">
-            <input type="radio" name="correct" value="3"> ج
-          </label>
-
-          <label class="answer">
-            <input type="radio" name="correct" value="4"> د
-          </label>
-        </div>
-
-        <label>توضیح پاسخ
-          <textarea id="explanation" placeholder="توضیح پاسخ (اختیاری)"></textarea>
-        </label>
-
-        <button id="saveButton" type="submit">ذخیره سؤال</button>
-
-        <p id="status" role="status"></p>
-
-      </form>
-    </div>
-
-  </section>
+</form>
+</div>
+</section>
 
 </main>
 
 <script>
 "use strict";
 
-/* تنظیمات اتصال به Supabase */
 const SUPABASE_URL = 'https://fvkzvfumabhhqzozxwlb.supabase.co';
 
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ2a3p2ZnVtYWJoaHF6b3p4d2xiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI1MDAzNzAsImV4cCI6MjEwODA3NjM3MH0.R4qUmFcN_c1U3wtYJoIPlg-BEt5yoeEl2Uo1cW62MNM';
 
-// ساخت کلاینت Supabase
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 let adminUsers = [];
+let subjects = [];
 
 const $ = id => document.getElementById(id);
 
 function escapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#39;"
-  })[char]);
+return String(value ?? "").replace(/[&<>"']/g, char => ({
+"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+})[char]);
 }
 
 function faDate(value) {
-  if (!value) return "—";
-
-  const date = new Date(value);
-
-  if (Number.isNaN(date.getTime())) return "—";
-
-  return date.toLocaleDateString("fa-IR");
+if (!value) return "—";
+const date = new Date(value);
+if (Number.isNaN(date.getTime())) return "—";
+return date.toLocaleDateString("fa-IR");
 }
 
 function showTab(tab) {
-  document.querySelectorAll(".tab-content").forEach(section => {
-    section.classList.toggle("active", section.id === tab);
-  });
+document.querySelectorAll(".tab-content").forEach(section => {
+section.classList.toggle("active", section.id === tab);
+});
 }
 
 async function initializeAdmin() {
-  const loginStatus = $("loginStatus");
+await loadSubjects();
+await loadDashboard();
+}
 
-  try {
-    const {
-      data: { user },
-      error
-    } = await db.auth.getUser();
+async function loadSubjects() {
+const list = $("subjectList");
+const select = $("subject");
 
-    if (error || !user) {
-      loginStatus.textContent =
-        "ابتدا با حساب مدیر در سایت اصلی وارد شو.";
-      return;
-    }
+list.textContent = "در حال دریافت درس‌ها...";
+select.innerHTML = '<option value="">انتخاب درس</option>';
 
-    const { data: admin, error: adminError } = await db
-      .from("admin_users")
-      .select("id")
-      .eq("id", user.id)
-      .maybeSingle();
+try {
+const {data,error} = await db
+.from("subjects")
+.select("id,name,slug")
+.order("id");
 
-    if (adminError) throw adminError;
+if(error) throw error;
 
-    if (!admin) {
-      loginStatus.textContent =
-        "این حساب دسترسی مدیریت ندارد.";
-      return;
-    }
+subjects = data || [];
 
-    $("loginBox").hidden = true;
-    $("adminApp").hidden = false;
+if(!subjects.length) {
+list.textContent = "هنوز درسی ثبت نشده است.";
+$("subjectStatus").textContent = "";
+return;
+}
 
-    await loadDashboard();
+list.innerHTML = subjects.map(s =>
+`<span class="subject-chip">${escapeHTML(s.name)}</span>`
+).join("");
 
-  } catch (error) {
-    loginStatus.textContent =
-      "خطا در بررسی دسترسی: " + error.message;
+select.innerHTML =
+'<option value="">انتخاب درس</option>' +
+subjects.map(s =>
+`<option value="${escapeHTML(s.name)}">${escapeHTML(s.name)}</option>`
+).join("");
 
-    loginStatus.className = "error";
-  }
+$("subjectStatus").textContent =
+subjects.length + " درس با موفقیت دریافت شد.";
+
+} catch(error) {
+list.textContent = "خطا در دریافت درس‌ها: " + error.message;
+$("subjectStatus").className = "error";
+}
 }
 
 async function loadDashboard() {
-  $("dashboardStatus").textContent =
-    "در حال دریافت اطلاعات کاربران...";
+$("dashboardStatus").textContent = "در حال دریافت اطلاعات کاربران...";
+$("dashboardStatus").className = "muted";
 
-  $("dashboardStatus").className = "muted";
+try {
+const {data,error} = await db.functions.invoke(
+"admin-dashboard",
+{method:"GET"}
+);
 
-  try {
-    const { data, error } = await db.functions.invoke(
-      "admin-dashboard",
-      { method: "GET" }
-    );
+if(error) throw error;
+if(!data || data.error) throw new Error(data?.error || "دریافت اطلاعات ناموفق بود.");
 
-    if (error) throw error;
+const stats = data.stats || {};
+adminUsers = Array.isArray(data.users) ? data.users : [];
 
-    if (!data || data.error) {
-      throw new Error(data?.error || "دریافت اطلاعات ناموفق بود.");
-    }
+$("totalUsers").textContent = Number(stats.total_users || 0).toLocaleString("fa-IR");
+$("todayUsers").textContent = Number(stats.today_signups || 0).toLocaleString("fa-IR");
+$("monthUsers").textContent = Number(stats.month_signups || 0).toLocaleString("fa-IR");
+$("activeUsers").textContent = Number(stats.active_users || 0).toLocaleString("fa-IR");
+$("totalExams").textContent = Number(stats.total_exams || 0).toLocaleString("fa-IR");
 
-    const stats = data.stats || {};
+filterUsers();
 
-    adminUsers = Array.isArray(data.users)
-      ? data.users
-      : [];
+$("dashboardStatus").textContent = "اطلاعات با موفقیت دریافت شد.";
+$("dashboardStatus").className = "success";
 
-    $("totalUsers").textContent =
-      Number(stats.total_users || 0).toLocaleString("fa-IR");
-
-    $("todayUsers").textContent =
-      Number(stats.today_signups || 0).toLocaleString("fa-IR");
-
-    $("monthUsers").textContent =
-      Number(stats.month_signups || 0).toLocaleString("fa-IR");
-
-    $("activeUsers").textContent =
-      Number(stats.active_users || 0).toLocaleString("fa-IR");
-
-    $("totalExams").textContent =
-      Number(stats.total_exams || 0).toLocaleString("fa-IR");
-
-    filterUsers();
-
-    $("dashboardStatus").textContent =
-      "اطلاعات با موفقیت دریافت شد.";
-
-    $("dashboardStatus").className = "success";
-
-  } catch (error) {
-    console.error("Dashboard error:", error);
-
-    $("dashboardStatus").textContent =
-      "خطا در دریافت اطلاعات: " + error.message;
-
-    $("dashboardStatus").className = "error";
-  }
+} catch(error) {
+console.error(error);
+$("dashboardStatus").textContent = "خطا در دریافت اطلاعات: " + error.message;
+$("dashboardStatus").className = "error";
+}
 }
 
 async function refreshDashboard() {
-  await loadDashboard();
+await Promise.all([loadDashboard(),loadSubjects()]);
 }
 
 function filterUsers() {
-  const query = $("userSearch").value
-    .trim()
-    .toLowerCase();
+const query = $("userSearch").value.trim().toLowerCase();
 
-  const filtered = adminUsers.filter(user =>
-    (user.email || "").toLowerCase().includes(query)
-  );
+const filtered = adminUsers.filter(user =>
+(user.email || "").toLowerCase().includes(query)
+);
 
-  const table = $("usersTable");
+const table = $("usersTable");
 
-  if (!filtered.length) {
-    table.innerHTML =
-      "<tr><td colspan='8'>کاربری پیدا نشد.</td></tr>";
-    return;
-  }
+if(!filtered.length) {
+table.innerHTML = "<tr><td colspan='8'>کاربری پیدا نشد.</td></tr>";
+return;
+}
 
-  table.innerHTML = filtered.map(user => `
-    <tr>
-      <td>${escapeHTML(user.email)}</td>
-      <td>${faDate(user.created_at)}</td>
-      <td>${user.email_confirmed ? "تأیید شده" : "تأیید نشده"}</td>
-      <td>${(Number(user.study_minutes || 0) / 60).toFixed(1)}</td>
-      <td>${Number(user.completed_sessions || 0)}</td>
-      <td>${Number(user.exam_count || 0)}</td>
-      <td>
-        ${user.average_percent == null
-          ? "—"
-          : escapeHTML(user.average_percent) + "%"}
-      </td>
-      <td>
-        <button
-          type="button"
-          data-user-id="${escapeHTML(user.id)}"
-          onclick="showUser(this.dataset.userId)">
-          مشاهده
-        </button>
-      </td>
-    </tr>
-  `).join("");
+table.innerHTML = filtered.map(user => `
+<tr>
+<td>${escapeHTML(user.email)}</td>
+<td>${faDate(user.created_at)}</td>
+<td>${user.email_confirmed ? "تأیید شده" : "تأیید نشده"}</td>
+<td>${(Number(user.study_minutes || 0)/60).toFixed(1)}</td>
+<td>${Number(user.completed_sessions || 0)}</td>
+<td>${Number(user.exam_count || 0)}</td>
+<td>${user.average_percent == null ? "—" : escapeHTML(user.average_percent)+"%"}</td>
+<td><button type="button" data-user-id="${escapeHTML(user.id)}" onclick="showUser(this.dataset.userId)">مشاهده</button></td>
+</tr>
+`).join("");
 }
 
 function showUser(id) {
-  const user = adminUsers.find(item => item.id === id);
+const user = adminUsers.find(item => item.id === id);
+if(!user) return;
 
-  if (!user) return;
+$("userDetails").className = "details";
 
-  $("userDetails").className = "details";
-
-  $("userDetails").innerHTML = `
-    <p><b>ایمیل:</b> ${escapeHTML(user.email)}</p>
-    <p><b>تاریخ عضویت:</b> ${faDate(user.created_at)}</p>
-    <p><b>تأیید ایمیل:</b> ${user.email_confirmed ? "بله" : "خیر"}</p>
-    <p><b>آخرین ورود:</b> ${faDate(user.last_sign_in_at)}</p>
-    <p><b>جلسات تکمیل‌شده:</b> ${Number(user.completed_sessions || 0)}</p>
-    <p><b>کل جلسات:</b> ${Number(user.total_sessions || 0)}</p>
-    <p><b>زمان مطالعه:</b> ${(Number(user.study_minutes || 0) / 60).toFixed(1)} ساعت</p>
-    <p><b>تعداد آزمون‌ها:</b> ${Number(user.exam_count || 0)}</p>
-    <p><b>میانگین درصد:</b>
-      ${user.average_percent == null
-        ? "—"
-        : escapeHTML(user.average_percent) + "%"}
-    </p>
-    <p><b>تعداد اشتباهات:</b> ${Number(user.mistake_count || 0)}</p>
-  `;
+$("userDetails").innerHTML = `
+<p><b>ایمیل:</b> ${escapeHTML(user.email)}</p>
+<p><b>تاریخ عضویت:</b> ${faDate(user.created_at)}</p>
+<p><b>تأیید ایمیل:</b> ${user.email_confirmed ? "بله" : "خیر"}</p>
+<p><b>آخرین ورود:</b> ${faDate(user.last_sign_in_at)}</p>
+<p><b>جلسات تکمیل‌شده:</b> ${Number(user.completed_sessions || 0)}</p>
+<p><b>کل جلسات:</b> ${Number(user.total_sessions || 0)}</p>
+<p><b>زمان مطالعه:</b> ${(Number(user.study_minutes || 0)/60).toFixed(1)} ساعت</p>
+<p><b>تعداد آزمون‌ها:</b> ${Number(user.exam_count || 0)}</p>
+<p><b>میانگین درصد:</b> ${user.average_percent == null ? "—" : escapeHTML(user.average_percent)+"%"}</p>
+<p><b>تعداد اشتباهات:</b> ${Number(user.mistake_count || 0)}</p>
+`;
 }
 
-$("questionForm").addEventListener("submit", async event => {
-  event.preventDefault();
+$("questionForm").addEventListener("submit",async event => {
+event.preventDefault();
 
-  const button = $("saveButton");
-  const status = $("status");
+const button = $("saveButton");
+const status = $("status");
 
-  const correct = document.querySelector(
-    'input[name="correct"]:checked'
-  );
+const correct = document.querySelector('input[name="correct"]:checked');
 
-  if (!correct) {
-    status.textContent = "پاسخ صحیح را انتخاب کن.";
-    status.className = "error";
-    return;
-  }
+if(!correct) {
+status.textContent = "پاسخ صحیح را انتخاب کن.";
+status.className = "error";
+return;
+}
 
-  const record = {
-    subject: $("subject").value,
-    exam_year: Number($("year").value),
-    exam_session: $("session").value,
-    question_number: Number($("number").value),
-    question_text: $("question").value.trim(),
-    option_a: $("a").value.trim(),
-    option_b: $("b").value.trim(),
-    option_c: $("c").value.trim(),
-    option_d: $("d").value.trim(),
-    correct_answer: Number(correct.value),
-    explanation: $("explanation").value.trim(),
-    exam_location: "inside",
-    verification_status: "pending"
-  };
+const record = {
+subject:$("subject").value,
+exam_year:Number($("year").value),
+exam_session:$("session").value,
+question_number:Number($("number").value),
+question_text:$("question").value.trim(),
+option_a:$("a").value.trim(),
+option_b:$("b").value.trim(),
+option_c:$("c").value.trim(),
+option_d:$("d").value.trim(),
+correct_answer:Number(correct.value),
+explanation:$("explanation").value.trim(),
+exam_location:"inside",
+verification_status:"pending"
+};
 
-  button.disabled = true;
-  status.textContent = "در حال ذخیره سؤال...";
-  status.className = "muted";
+button.disabled = true;
+status.textContent = "در حال ذخیره سؤال...";
+status.className = "muted";
 
-  try {
-    const {
-      data: { user },
-      error: authError
-    } = await db.auth.getUser();
+try {
+const {data:{user},error:authError} = await db.auth.getUser();
 
-    if (authError || !user) {
-      throw new Error("ابتدا وارد حساب مدیر شو.");
-    }
+if(authError || !user) {
+throw new Error("ابتدا با حساب کاربری وارد سایت شو.");
+}
 
-    const { data: admin, error: adminError } = await db
-      .from("admin_users")
-      .select("id")
-      .eq("id", user.id)
-      .maybeSingle();
+const {error} = await db.from("questions_bank").insert(record);
 
-    if (adminError || !admin) {
-      throw new Error("دسترسی مدیر تأیید نشد.");
-    }
+if(error) throw error;
 
-    const { error } = await db
-      .from("questions_bank")
-      .insert(record);
+status.textContent = "سؤال با موفقیت ذخیره شد و در انتظار بررسی است.";
+status.className = "success";
 
-    if (error) throw error;
+$("questionForm").reset();
+$("year").value = "1400";
 
-    status.textContent =
-      "سؤال با موفقیت ذخیره شد و در انتظار بررسی است.";
-
-    status.className = "success";
-
-    $("questionForm").reset();
-    $("year").value = "1400";
-
-  } catch (error) {
-    console.error("Question insert error:", error);
-
-    status.textContent =
-      "خطا در ذخیره سؤال: " + error.message;
-
-    status.className = "error";
-
-  } finally {
-    button.disabled = false;
-  }
+} catch(error) {
+console.error(error);
+status.textContent = "خطا در ذخیره سؤال: " + error.message;
+status.className = "error";
+} finally {
+button.disabled = false;
+}
 });
 
 async function logoutAdmin() {
-  const { error } = await db.auth.signOut();
-
-  if (error) {
-    alert("خطا در خروج: " + error.message);
-    return;
-  }
-
-  window.location.href = "./";
+const {error} = await db.auth.signOut();
+if(error) {
+alert("خطا در خروج: " + error.message);
+return;
+}
+window.location.href = "./";
 }
 
 initializeAdmin();
