@@ -3,10 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>مدیریت KonkurYar</title>
+  <meta name="theme-color" content="#2457c5">
+  <title>پنل مدیریت | KonkurYar</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       padding: 20px;
@@ -14,7 +18,11 @@
       background: #f3f5f9;
       color: #182033;
     }
+
+    button, input, select, textarea { font: inherit; }
+
     .container { max-width: 1100px; margin: auto; }
+
     .header, .panel, .stat {
       background: white;
       border-radius: 14px;
@@ -22,61 +30,73 @@
       margin-bottom: 18px;
       box-shadow: 0 4px 18px #00000009;
     }
+
     h1, h2 { margin-top: 0; }
     h1 { color: #2457c5; font-size: 23px; }
     h2 { font-size: 19px; }
-    .tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+
     button {
       border: 0;
       border-radius: 9px;
       padding: 12px 18px;
       background: #2457c5;
       color: white;
-      font: inherit;
       cursor: pointer;
     }
+
     button:disabled { opacity: .6; cursor: wait; }
     button.secondary { background: #64748b; }
+
+    .tabs { display: flex; gap: 10px; flex-wrap: wrap; }
+
     .tab-content { display: none; }
     .tab-content.active { display: block; }
+
     .stats {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
       gap: 12px;
     }
+
     .stat { margin: 0; }
     .stat small { color: #64748b; }
+
     .stat strong {
       display: block;
       margin-top: 10px;
       font-size: 25px;
       color: #2457c5;
     }
+
     input, select, textarea {
       width: 100%;
       padding: 12px;
       border: 1px solid #d8deea;
       border-radius: 9px;
-      font: inherit;
       background: white;
       margin-top: 7px;
     }
+
     label {
       display: block;
       margin: 14px 0;
       font-weight: bold;
     }
+
     textarea { min-height: 90px; resize: vertical; }
+
     .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 12px;
     }
+
     .answers {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
+
     .answer {
       display: flex;
       align-items: center;
@@ -85,69 +105,128 @@
       padding: 12px;
       border-radius: 9px;
     }
+
     .answer input { width: auto; margin: 0; }
+
     .table-wrap { overflow-x: auto; }
+
     table {
       width: 100%;
       border-collapse: collapse;
       min-width: 750px;
     }
+
     th, td {
       padding: 12px;
       text-align: right;
       border-bottom: 1px solid #e5eaf1;
       white-space: nowrap;
     }
+
     th { background: #f5f7fb; }
-    #status, #dashboardStatus {
+
+    #status, #dashboardStatus, #loginStatus {
       line-height: 1.9;
       overflow-wrap: anywhere;
     }
+
     .error { color: #c62828; }
     .success { color: #16803c; }
     .muted { color: #64748b; font-size: 13px; }
+
     #loginBox { max-width: 480px; margin: 70px auto; }
+
+    .details {
+      background: #f7f8fc;
+      border-radius: 12px;
+      padding: 15px;
+      line-height: 2;
+    }
+
+    .details p { margin: 5px 0; }
+
+    .back-link {
+      color: #2457c5;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
     @media(max-width: 600px) {
       body { padding: 10px; }
       .grid, .answers { grid-template-columns: 1fr; }
+      .header, .panel { padding: 15px; }
     }
   </style>
 </head>
+
 <body>
 
 <div id="loginBox" class="panel">
-  <h2>ورود به مدیریت</h2>
-  <p>برای ورود ابتدا باید در سایت با حساب ادمین وارد شده باشی.</p>
-  <p id="loginStatus" class="muted">در حال بررسی ورود...</p>
+  <h2>ورود به مدیریت 🛡️</h2>
+  <p>برای ورود ابتدا با حساب مدیر در سایت کنکوریار وارد شو.</p>
+  <p id="loginStatus" class="muted">در حال بررسی حساب کاربری...</p>
+  <a class="back-link" href="./">بازگشت به سایت اصلی</a>
 </div>
 
 <main class="container" id="adminApp" hidden>
+
   <header class="header">
     <h1>پنل مدیریت KonkurYar</h1>
     <p>مدیریت کاربران و بانک سؤالات کنکور</p>
+
     <div class="tabs">
       <button type="button" onclick="showTab('users')">مدیریت کاربران</button>
       <button type="button" onclick="showTab('questions')">بانک سؤالات</button>
-      <button type="button" class="secondary" onclick="location.reload()">بازخوانی</button>
+      <button type="button" class="secondary" onclick="refreshDashboard()">بازخوانی اطلاعات</button>
+      <button type="button" class="secondary" onclick="logoutAdmin()">خروج</button>
     </div>
   </header>
 
+  <!-- مدیریت کاربران -->
   <section id="users" class="tab-content active">
+
     <div class="panel">
-      <h2>آمار کلی سایت</h2>
+      <h2>آمار کلی سایت 📊</h2>
+
       <div class="stats">
-        <div class="stat"><small>کل کاربران</small><strong id="totalUsers">۰</strong></div>
-        <div class="stat"><small>ثبت‌نام امروز</small><strong id="todayUsers">۰</strong></div>
-        <div class="stat"><small>ثبت‌نام این ماه</small><strong id="monthUsers">۰</strong></div>
-        <div class="stat"><small>کاربران فعال هفته</small><strong id="activeUsers">۰</strong></div>
-        <div class="stat"><small>کل آزمون‌ها</small><strong id="totalExams">۰</strong></div>
+        <div class="stat">
+          <small>کل کاربران</small>
+          <strong id="totalUsers">۰</strong>
+        </div>
+
+        <div class="stat">
+          <small>ثبت‌نام امروز</small>
+          <strong id="todayUsers">۰</strong>
+        </div>
+
+        <div class="stat">
+          <small>ثبت‌نام این ماه</small>
+          <strong id="monthUsers">۰</strong>
+        </div>
+
+        <div class="stat">
+          <small>کاربران فعال هفته</small>
+          <strong id="activeUsers">۰</strong>
+        </div>
+
+        <div class="stat">
+          <small>کل آزمون‌ها</small>
+          <strong id="totalExams">۰</strong>
+        </div>
       </div>
+
       <p id="dashboardStatus" class="muted"></p>
     </div>
 
     <div class="panel">
-      <h2>فهرست دانش‌آموزان</h2>
-      <input id="userSearch" placeholder="جست‌وجو با ایمیل..." oninput="filterUsers()">
+      <h2>فهرست دانش‌آموزان 👨‍🎓</h2>
+
+      <input
+        id="userSearch"
+        type="search"
+        placeholder="جست‌وجو با ایمیل..."
+        oninput="filterUsers()">
+
       <div class="table-wrap">
         <table>
           <thead>
@@ -162,6 +241,7 @@
               <th>جزئیات</th>
             </tr>
           </thead>
+
           <tbody id="usersTable">
             <tr><td colspan="8">در حال دریافت اطلاعات...</td></tr>
           </tbody>
@@ -171,17 +251,27 @@
 
     <div class="panel">
       <h2>جزئیات دانش‌آموز</h2>
-      <div id="userDetails" class="muted">برای مشاهده جزئیات، یک دانش‌آموز را انتخاب کن.</div>
+      <div id="userDetails" class="muted">
+        برای مشاهده جزئیات، یک دانش‌آموز را انتخاب کن.
+      </div>
     </div>
+
   </section>
 
+  <!-- بانک سؤالات -->
   <section id="questions" class="tab-content">
+
     <div class="panel">
-      <h2>افزودن سؤال به بانک سؤالات</h2>
-      <p class="muted">سؤال‌های ثبت‌شده با وضعیت بررسی در بانک ذخیره می‌شوند.</p>
+      <h2>افزودن سؤال به بانک سؤالات 📝</h2>
+
+      <p class="muted">
+        سؤال‌های ثبت‌شده با وضعیت در انتظار بررسی در بانک ذخیره می‌شوند.
+      </p>
 
       <form id="questionForm">
+
         <div class="grid">
+
           <label>درس
             <select id="subject" required>
               <option value="زیست‌شناسی">زیست‌شناسی</option>
@@ -193,7 +283,7 @@
           </label>
 
           <label>سال کنکور
-            <input id="year" type="number" value="1400" required>
+            <input id="year" type="number" min="1390" max="1500" value="1400" required>
           </label>
 
           <label>نوبت آزمون
@@ -206,6 +296,7 @@
           <label>شماره سؤال
             <input id="number" type="number" min="1" required>
           </label>
+
         </div>
 
         <label>متن سؤال
@@ -215,22 +306,37 @@
         <label>گزینه الف
           <input id="a" required>
         </label>
+
         <label>گزینه ب
           <input id="b" required>
         </label>
+
         <label>گزینه ج
           <input id="c" required>
         </label>
+
         <label>گزینه د
           <input id="d" required>
         </label>
 
         <label>پاسخ صحیح</label>
+
         <div class="answers">
-          <label class="answer"><input type="radio" name="correct" value="1" required> الف</label>
-          <label class="answer"><input type="radio" name="correct" value="2"> ب</label>
-          <label class="answer"><input type="radio" name="correct" value="3"> ج</label>
-          <label class="answer"><input type="radio" name="correct" value="4"> د</label>
+          <label class="answer">
+            <input type="radio" name="correct" value="1" required> الف
+          </label>
+
+          <label class="answer">
+            <input type="radio" name="correct" value="2"> ب
+          </label>
+
+          <label class="answer">
+            <input type="radio" name="correct" value="3"> ج
+          </label>
+
+          <label class="answer">
+            <input type="radio" name="correct" value="4"> د
+          </label>
         </div>
 
         <label>توضیح پاسخ
@@ -238,226 +344,351 @@
         </label>
 
         <button id="saveButton" type="submit">ذخیره سؤال</button>
+
         <p id="status" role="status"></p>
+
       </form>
     </div>
+
   </section>
+
 </main>
 
 <script>
-  // آدرس پروژه از قبل تنظیم شده است.
-  const SUPABASE_URL = "https://fvkzvfumabhhqzozxwlb.supabase.co";
+"use strict";
 
-  // کلید عمومی Publishable یا anon پروژه را از تنظیمات API کپی کن.
-  // هرگز service_role را اینجا قرار نده.
-  const SUPABASE_ANON_KEY = "کلید_عمومی_پروژه_را_اینجا_قرار_بده";
+/* تنظیمات اتصال */
+const SUPABASE_URL =
+  "https://fvkzvfumabhhqzozxwlb.supabase.co";
 
-  const db = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_ANON_KEY
-  );
+/*
+  کلید عمومی Publishable یا anon را از تنظیمات پروژه وارد کن.
+  هرگز service_role را در این فایل قرار نده.
+*/
+const SUPABASE_ANON_KEY =
+  "کلید_عمومی_پروژه_را_اینجا_قرار_بده";
 
-  let adminUsers = [];
+const db = window.supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
 
-  const $ = id => document.getElementById(id);
+let adminUsers = [];
 
-  function escapeHTML(value) {
-    return String(value ?? "").replace(/[&<>"']/g, c => ({
-      "&": "&amp;", "<": "&lt;", ">": "&gt;",
-      '"': "&quot;", "'": "&#39;"
-    })[c]);
+const $ = id => document.getElementById(id);
+
+/* جلوگیری از تزریق HTML */
+function escapeHTML(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+function faDate(value) {
+  if (!value) return "—";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleDateString("fa-IR");
+}
+
+/* تغییر تب */
+function showTab(tab) {
+  document.querySelectorAll(".tab-content").forEach(section => {
+    section.classList.toggle("active", section.id === tab);
+  });
+}
+
+/* بررسی ورود و دسترسی مدیر */
+async function initializeAdmin() {
+  const loginStatus = $("loginStatus");
+
+  if (SUPABASE_ANON_KEY.includes("اینجا_قرار_بده")) {
+    loginStatus.textContent =
+      "خطا: ابتدا کلید عمومی Supabase را در کد قرار بده.";
+    loginStatus.className = "error";
+    return;
   }
 
-  function faDate(value) {
-    if (!value) return "—";
-    const date = new Date(value);
-    return Number.isNaN(date.getTime())
-      ? "—"
-      : date.toLocaleDateString("fa-IR");
-  }
+  try {
+    const {
+      data: { user },
+      error
+    } = await db.auth.getUser();
 
-  function showTab(tab) {
-    document.querySelectorAll(".tab-content").forEach(section => {
-      section.classList.toggle("active", section.id === tab);
-    });
-  }
-
-  async function initializeAdmin() {
-    const loginStatus = $("loginStatus");
-
-    if (SUPABASE_ANON_KEY.includes("اینجا_قرار_بده")) {
-      loginStatus.textContent = "ابتدا کلید عمومی Supabase را در کد وارد کن.";
+    if (error || !user) {
+      loginStatus.textContent =
+        "ابتدا با حساب مدیر در سایت اصلی وارد شو.";
       return;
     }
 
-    try {
-      const { data: { user }, error } = await db.auth.getUser();
+    const { data: admin, error: adminError } = await db
+      .from("admin_users")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
 
-      if (error || !user) {
-        loginStatus.textContent = "ابتدا با حساب ادمین در سایت وارد شو.";
-        return;
-      }
-
-      const { data: admin, error: adminError } = await db
-        .from("admin_users")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (adminError || !admin) {
-        loginStatus.textContent = "این حساب دسترسی مدیریت ندارد.";
-        return;
-      }
-
-      $("loginBox").hidden = true;
-      $("adminApp").hidden = false;
-
-      await loadDashboard();
-
-    } catch (error) {
-      loginStatus.textContent = "خطا: " + error.message;
+    if (adminError) {
+      throw adminError;
     }
-  }
 
-  async function loadDashboard() {
-    $("dashboardStatus").textContent = "در حال دریافت اطلاعات...";
-
-    try {
-      const { data, error } = await db.functions.invoke("admin-dashboard", {
-        method: "GET"
-      });
-
-      if (error || !data || data.error) {
-        throw new Error(data?.error || error?.message || "خطا در دریافت اطلاعات");
-      }
-
-      const stats = data.stats || {};
-      adminUsers = Array.isArray(data.users) ? data.users : [];
-
-      $("totalUsers").textContent = stats.total_users ?? 0;
-      $("todayUsers").textContent = stats.today_signups ?? 0;
-      $("monthUsers").textContent = stats.month_signups ?? 0;
-      $("activeUsers").textContent = stats.active_users ?? 0;
-      $("totalExams").textContent = stats.total_exams ?? 0;
-
-      filterUsers();
-      $("dashboardStatus").textContent = "اطلاعات با موفقیت دریافت شد.";
-
-    } catch (error) {
-      $("dashboardStatus").textContent = "خطا: " + error.message;
-      $("dashboardStatus").className = "error";
+    if (!admin) {
+      loginStatus.textContent =
+        "این حساب دسترسی مدیریت ندارد.";
+      return;
     }
+
+    $("loginBox").hidden = true;
+    $("adminApp").hidden = false;
+
+    await loadDashboard();
+
+  } catch (error) {
+    loginStatus.textContent =
+      "خطا در بررسی دسترسی: " + error.message;
+
+    loginStatus.className = "error";
   }
+}
 
-  function filterUsers() {
-    const query = $("userSearch").value.trim().toLowerCase();
+/* دریافت اطلاعات از Edge Function */
+async function loadDashboard() {
+  $("dashboardStatus").textContent =
+    "در حال دریافت اطلاعات کاربران...";
 
-    const filtered = adminUsers.filter(user =>
-      (user.email || "").toLowerCase().includes(query)
+  $("dashboardStatus").className = "muted";
+
+  try {
+    const { data, error } = await db.functions.invoke(
+      "admin-dashboard",
+      { method: "GET" }
     );
 
-    const table = $("usersTable");
+    if (error) throw error;
 
-    if (!filtered.length) {
-      table.innerHTML = "<tr><td colspan='8'>کاربری پیدا نشد.</td></tr>";
-      return;
+    if (!data || data.error) {
+      throw new Error(data?.error || "دریافت اطلاعات ناموفق بود.");
     }
 
-    table.innerHTML = filtered.map(user => `
-      <tr>
-        <td>${escapeHTML(user.email)}</td>
-        <td>${faDate(user.created_at)}</td>
-        <td>${user.email_confirmed ? "تأیید شده" : "تأیید نشده"}</td>
-        <td>${(Number(user.study_minutes || 0) / 60).toFixed(1)}</td>
-        <td>${Number(user.completed_sessions || 0)}</td>
-        <td>${Number(user.exam_count || 0)}</td>
-        <td>${user.average_percent == null ? "—" : escapeHTML(user.average_percent) + "%"}</td>
-        <td><button type="button" onclick="showUser('${escapeHTML(user.id)}')">مشاهده</button></td>
-      </tr>
-    `).join("");
+    const stats = data.stats || {};
+
+    adminUsers = Array.isArray(data.users)
+      ? data.users
+      : [];
+
+    $("totalUsers").textContent =
+      Number(stats.total_users || 0).toLocaleString("fa-IR");
+
+    $("todayUsers").textContent =
+      Number(stats.today_signups || 0).toLocaleString("fa-IR");
+
+    $("monthUsers").textContent =
+      Number(stats.month_signups || 0).toLocaleString("fa-IR");
+
+    $("activeUsers").textContent =
+      Number(stats.active_users || 0).toLocaleString("fa-IR");
+
+    $("totalExams").textContent =
+      Number(stats.total_exams || 0).toLocaleString("fa-IR");
+
+    filterUsers();
+
+    $("dashboardStatus").textContent =
+      "اطلاعات با موفقیت دریافت شد.";
+
+    $("dashboardStatus").className = "success";
+
+  } catch (error) {
+    console.error("Dashboard error:", error);
+
+    $("dashboardStatus").textContent =
+      "خطا در دریافت اطلاعات: " + error.message;
+
+    $("dashboardStatus").className = "error";
+  }
+}
+
+async function refreshDashboard() {
+  await loadDashboard();
+}
+
+/* جست‌وجوی کاربران */
+function filterUsers() {
+  const query = $("userSearch").value
+    .trim()
+    .toLowerCase();
+
+  const filtered = adminUsers.filter(user =>
+    (user.email || "").toLowerCase().includes(query)
+  );
+
+  const table = $("usersTable");
+
+  if (!filtered.length) {
+    table.innerHTML =
+      "<tr><td colspan='8'>کاربری پیدا نشد.</td></tr>";
+    return;
   }
 
-  function showUser(id) {
-    const user = adminUsers.find(item => item.id === id);
-    if (!user) return;
+  table.innerHTML = filtered.map(user => `
+    <tr>
+      <td>${escapeHTML(user.email)}</td>
+      <td>${faDate(user.created_at)}</td>
+      <td>${user.email_confirmed ? "تأیید شده" : "تأیید نشده"}</td>
+      <td>${(Number(user.study_minutes || 0) / 60).toFixed(1)}</td>
+      <td>${Number(user.completed_sessions || 0)}</td>
+      <td>${Number(user.exam_count || 0)}</td>
+      <td>
+        ${user.average_percent == null
+          ? "—"
+          : escapeHTML(user.average_percent) + "%"}
+      </td>
+      <td>
+        <button
+          type="button"
+          data-user-id="${escapeHTML(user.id)}"
+          onclick="showUser(this.dataset.userId)">
+          مشاهده
+        </button>
+      </td>
+    </tr>
+  `).join("");
+}
 
-    $("userDetails").innerHTML = `
-      <p><b>ایمیل:</b> ${escapeHTML(user.email)}</p>
-      <p><b>تاریخ عضویت:</b> ${faDate(user.created_at)}</p>
-      <p><b>تأیید ایمیل:</b> ${user.email_confirmed ? "بله" : "خیر"}</p>
-      <p><b>آخرین ورود:</b> ${faDate(user.last_sign_in_at)}</p>
-      <p><b>جلسات تکمیل‌شده:</b> ${Number(user.completed_sessions || 0)}</p>
-      <p><b>کل جلسات:</b> ${Number(user.total_sessions || 0)}</p>
-      <p><b>زمان مطالعه ثبت‌شده:</b> ${(Number(user.study_minutes || 0) / 60).toFixed(1)} ساعت</p>
-      <p><b>تعداد آزمون‌ها:</b> ${Number(user.exam_count || 0)}</p>
-      <p><b>میانگین درصد:</b> ${user.average_percent == null ? "—" : escapeHTML(user.average_percent) + "%"}</p>
-      <p><b>تعداد اشتباهات:</b> ${Number(user.mistake_count || 0)}</p>
-    `;
+/* نمایش جزئیات دانش‌آموز */
+function showUser(id) {
+  const user = adminUsers.find(item => item.id === id);
+
+  if (!user) return;
+
+  $("userDetails").className = "details";
+
+  $("userDetails").innerHTML = `
+    <p><b>ایمیل:</b> ${escapeHTML(user.email)}</p>
+    <p><b>تاریخ عضویت:</b> ${faDate(user.created_at)}</p>
+    <p><b>تأیید ایمیل:</b> ${user.email_confirmed ? "بله" : "خیر"}</p>
+    <p><b>آخرین ورود:</b> ${faDate(user.last_sign_in_at)}</p>
+    <p><b>جلسات تکمیل‌شده:</b> ${Number(user.completed_sessions || 0)}</p>
+    <p><b>کل جلسات:</b> ${Number(user.total_sessions || 0)}</p>
+    <p><b>زمان مطالعه:</b> ${(Number(user.study_minutes || 0) / 60).toFixed(1)} ساعت</p>
+    <p><b>تعداد آزمون‌ها:</b> ${Number(user.exam_count || 0)}</p>
+    <p><b>میانگین درصد:</b>
+      ${user.average_percent == null
+        ? "—"
+        : escapeHTML(user.average_percent) + "%"}
+    </p>
+    <p><b>تعداد اشتباهات:</b> ${Number(user.mistake_count || 0)}</p>
+  `;
+}
+
+/* افزودن سؤال */
+$("questionForm").addEventListener("submit", async event => {
+  event.preventDefault();
+
+  const button = $("saveButton");
+  const status = $("status");
+
+  const correct = document.querySelector(
+    'input[name="correct"]:checked'
+  );
+
+  if (!correct) {
+    status.textContent = "پاسخ صحیح را انتخاب کن.";
+    status.className = "error";
+    return;
   }
 
-  $("questionForm").addEventListener("submit", async event => {
-    event.preventDefault();
+  const record = {
+    subject: $("subject").value,
+    exam_year: Number($("year").value),
+    exam_session: $("session").value,
+    question_number: Number($("number").value),
+    question_text: $("question").value.trim(),
+    option_a: $("a").value.trim(),
+    option_b: $("b").value.trim(),
+    option_c: $("c").value.trim(),
+    option_d: $("d").value.trim(),
+    correct_answer: Number(correct.value),
+    explanation: $("explanation").value.trim(),
+    exam_location: "inside",
+    verification_status: "pending"
+  };
 
-    const button = $("saveButton");
-    const status = $("status");
-    const correct = document.querySelector('input[name="correct"]:checked');
+  button.disabled = true;
+  status.textContent = "در حال ذخیره سؤال...";
+  status.className = "muted";
 
-    if (!correct) {
-      status.textContent = "پاسخ صحیح را انتخاب کن.";
-      status.className = "error";
-      return;
+  try {
+    /* بررسی مجدد هویت */
+    const {
+      data: { user },
+      error: authError
+    } = await db.auth.getUser();
+
+    if (authError || !user) {
+      throw new Error("ابتدا وارد حساب مدیر شو.");
     }
 
-    const record = {
-      subject: $("subject").value,
-      exam_year: Number($("year").value),
-      exam_session: $("session").value,
-      question_number: Number($("number").value),
-      question_text: $("question").value.trim(),
-      option_a: $("a").value.trim(),
-      option_b: $("b").value.trim(),
-      option_c: $("c").value.trim(),
-      option_d: $("d").value.trim(),
-      correct_answer: Number(correct.value),
-      explanation: $("explanation").value.trim(),
-      exam_location: "inside",
-      verification_status: "pending"
-    };
+    /* بررسی عضویت در admin_users */
+    const { data: admin, error: adminError } = await db
+      .from("admin_users")
+      .select("id")
+      .eq("id", user.id)
+      .maybeSingle();
 
-    button.disabled = true;
-    status.textContent = "در حال ذخیره سؤال...";
-    status.className = "muted";
-
-    try {
-      // بررسی دوباره مجوز ادمین پیش از ثبت سؤال
-      const { data: { user }, error: authError } = await db.auth.getUser();
-      if (authError || !user) throw new Error("ابتدا وارد حساب ادمین شو.");
-
-      const { data: admin, error: adminError } = await db
-        .from("admin_users")
-        .select("id")
-        .eq("id", user.id)
-        .maybeSingle();
-
-      if (adminError || !admin) throw new Error("دسترسی ادمین تأیید نشد.");
-
-      const { error } = await db.from("questions_bank").insert(record);
-      if (error) throw error;
-
-      status.textContent = "سؤال با موفقیت ذخیره شد.";
-      status.className = "success";
-      $("questionForm").reset();
-      $("year").value = "1400";
-
-    } catch (error) {
-      status.textContent = "خطا در ذخیره: " + error.message;
-      status.className = "error";
-    } finally {
-      button.disabled = false;
+    if (adminError || !admin) {
+      throw new Error("دسترسی مدیر تأیید نشد.");
     }
-  });
 
-  initializeAdmin();
+    /* ثبت سؤال؛ امنیت نهایی باید با RLS کنترل شود */
+    const { error } = await db
+      .from("questions_bank")
+      .insert(record);
+
+    if (error) throw error;
+
+    status.textContent =
+      "سؤال با موفقیت ذخیره شد و در انتظار بررسی است.";
+
+    status.className = "success";
+
+    $("questionForm").reset();
+    $("year").value = "1400";
+
+  } catch (error) {
+    console.error("Question insert error:", error);
+
+    status.textContent =
+      "خطا در ذخیره سؤال: " + error.message;
+
+    status.className = "error";
+
+  } finally {
+    button.disabled = false;
+  }
+});
+
+/* خروج از حساب */
+async function logoutAdmin() {
+  const { error } = await db.auth.signOut();
+
+  if (error) {
+    alert("خطا در خروج: " + error.message);
+    return;
+  }
+
+  window.location.href = "./";
+}
+
+/* شروع */
+initializeAdmin();
 </script>
+
 </body>
 </html>
