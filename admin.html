@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>پنل مدیریت بانک سؤالات</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 24px 14px;
+      font-family: Tahoma, sans-serif;
+      background: #f3f5f9;
+      color: #182033;
+    }
+    .container {
+      max-width: 720px;
+      margin: auto;
+      background: white;
+      padding: 25px;
+      border-radius: 18px;
+      box-shadow: 0 5px 25px #0000000c;
+    }
+    h2 { margin-top: 0; color: #2457c5; }
+    label {
+      display: block;
+      margin: 16px 0 7px;
+      font-weight: bold;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #d8deea;
+      border-radius: 9px;
+      font: inherit;
+      background: white;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .answer {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 10px;
+      padding: 10px;
+      background: #f5f7fb;
+      border-radius: 9px;
+    }
+    .answer input { width: auto; }
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 14px;
+      border: 0;
+      border-radius: 10px;
+      background: #2457c5;
+      color: white;
+      font: inherit;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    #status { margin-top: 15px; line-height: 1.8; }
+    .hint { color: #64748b; font-size: 13px; line-height: 1.8; }
+    @media(max-width: 500px) {
+      .grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <h2>پنل مدیریت بانک سؤالات</h2>
+    <p class="hint">اطلاعات سؤال را وارد کن و در بانک سؤالات ذخیره کن.</p>
+
+    <form id="questionForm">
+      <div class="grid">
+        <div>
+          <label>درس</label>
+          <select id="subject" required>
+            <option value="زیست‌شناسی">زیست‌شناسی</option>
+            <option value="شیمی">شیمی</option>
+            <option value="فیزیک">فیزیک</option>
+            <option value="ریاضی">ریاضی</option>
+            <option value="زمین‌شناسی">زمین‌شناسی</option>
+          </select>
+        </div>
+        <div>
+          <label>سال کنکور</label>
+          <input id="year" type="number" value="1400" required>
+        </div>
+        <div>
+          <label>نوبت آزمون</label>
+          <select id="session">
+            <option value="نوبت اول">نوبت اول</option>
+            <option value="نوبت دوم">نوبت دوم</option>
+          </select>
+        </div>
+        <div>
+          <label>شماره سؤال</label>
+          <input id="number" type="number" min="1" required>
+        </div>
+      </div>
+
+      <label>متن سؤال</label>
+      <textarea id="question" required></textarea>
+
+      <label>گزینه الف</label>
+      <input id="a" required>
+
+      <label>گزینه ب</label>
+      <input id="b" required>
+
+      <label>گزینه ج</label>
+      <input id="c" required>
+
+      <label>گزینه د</label>
+      <input id="d" required>
+
+      <label>پاسخ صحیح</label>
+      <div class="grid">
+        <label class="answer"><input type="radio" name="correct" value="1" required> الف</label>
+        <label class="answer"><input type="radio" name="correct" value="2"> ب</label>
+        <label class="answer"><input type="radio" name="correct" value="3"> ج</label>
+        <label class="answer"><input type="radio" name="correct" value="4"> د</label>
+      </div>
+
+      <label>توضیح پاسخ (اختیاری)</label>
+      <textarea id="explanation" placeholder="توضیح پاسخ..."></textarea>
+
+      <button id="saveButton" type="submit">ذخیره سؤال</button>
+      <p id="status" role="status"></p>
+    </form>
+  </main>
+
+  <script>
+    // اطلاعات پروژه Supabase را اینجا وارد کن
+    const SUPABASE_URL = "YOUR_SUPABASE_URL";
+    const SUPABASE_ANON_KEY = "YOUR_SUPABASE_PUBLISHABLE_KEY";
+
+    const db = window.supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_ANON_KEY
+    );
+
+    const form = document.getElementById("questionForm");
+    const status = document.getElementById("status");
+    const button = document.getElementById("saveButton");
+
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const correct = document.querySelector(
+        'input[name="correct"]:checked'
+      );
+
+      if (!correct) {
+        status.textContent = "لطفاً پاسخ صحیح را انتخاب کن.";
+        return;
+      }
+
+      const record = {
+        subject: document.getElementById("subject").value,
+        exam_year: Number(document.getElementById("year").value),
+        exam_session: document.getElementById("session").value,
+        question_number: Number(document.getElementById("number").value),
+        question_text: document.getElementById("question").value.trim(),
+        option_a: document.getElementById("a").value.trim(),
+        option_b: document.getElementById("b").value.trim(),
+        option_c: document.getElementById("c").value.trim(),
+        option_d: document.getElementById("d").value.trim(),
+        correct_answer: Number(correct.value),
+        explanation: document.getElementById("explanation").value.trim(),
+        exam_location: "inside",
+        verification_status: "pending"
+      };
+
+      button.disabled = true;
+      status.textContent = "در حال ذخیره...";
+
+      try {
+        const { error } = await db
+          .from("questions_bank")
+          .insert(record);
+
+        if (error) throw error;
+
+        status.textContent = "سؤال با موفقیت ذخیره شد.";
+        form.reset();
+        document.getElementById("year").value = "1400";
+      } catch (error) {
+        console.error(error);
+        status.textContent = "خطا در ذخیره: " + error.message;
+      } finally {
+        button.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
