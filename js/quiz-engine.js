@@ -1,9 +1,4 @@
-
 "use strict";
-
-/* =====================================
-   تنظیمات موتور آزمون
-===================================== */
 
 const QUIZ_SETTINGS = {
   secondsPerQuestion: 90,
@@ -19,12 +14,12 @@ let currentQuiz = {
   startTime: null,
   duration: 0,
   timerInterval: null,
-  submitted: false
+  submitted: false,
+  mode: "single",
+  subjectCounts: {}
 };
 
-/* =====================================
-   ابزارهای کمکی
-===================================== */
+let lastQuizResult = null;
 
 function normalizeQuizSubject(subject) {
   const aliases = {
@@ -35,8 +30,8 @@ function normalizeQuizSubject(subject) {
   return aliases[subject] || subject;
 }
 
-function shuffleQuizQuestions(questions) {
-  const result = [...questions];
+function shuffleQuizQuestions(items) {
+  const result = [...items];
 
   for (let i = result.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -47,21 +42,17 @@ function shuffleQuizQuestions(questions) {
 }
 
 function quizEscapeHTML(value) {
-  return String(value ?? "").replace(/[&<>"']/g, char => ({
+  return String(value ?? "").replace(/[&<>"']/g, c => ({
     "&": "&amp;",
     "<": "&lt;",
     ">": "&gt;",
     '"': "&quot;",
     "'": "&#039;"
-  })[char]);
+  })[c]);
 }
 
-/* =====================================
-   دریافت سؤال از Supabase
-===================================== */
-
 async function fetchQuestionsFromDB(subject, count) {
-  const normalizedSubject = normalizeQuizSubject(subject);
+  const normalized = normalizeQuizSubject(subject);
 
   const { data, error } = await supabaseClient
     .from("questions_bank")
@@ -79,44 +70,41 @@ async function fetchQuestionsFromDB(subject, count) {
       correct_answer,
       explanation,
       source,
-      exam_location,
-      verification_status
+      exam_location
     `)
-    .eq("subject", normalizedSubject)
+    .eq("subject", normalized)
     .eq("verification_status", "verified")
     .not("correct_answer", "is", null);
 
   if (error) {
-    console.error("خطا در دریافت سؤال‌ها:", error);
-    throw new Error("دریافت سؤال‌ها از بانک اطلاعاتی ناموفق بود.");
+    console.error(error);
+    throw new Error("دریافت سؤال‌های " + normalized + " ناموفق بود.");
   }
 
-  if (!data || data.length === 0) {
+  const valid = (data || []).filter(q =>
+    q.question_text &&
+    q.option_a &&
+    q.option_b &&
+    q.option_c &&
+    q.option_d &&
+    Number(q.correct_answer) >= 1 &&
+    Number(q.correct_answer) <= 4
+  );
+
+  if (!valid.length) {
     throw new Error(
-      "برای این درس سؤال تأییدشده‌ای پیدا نشد. ابتدا سؤال‌ها را در بانک سؤال تأیید کن."
+      "برای درس «" + normalized + "» سؤال تأییدشده‌ای موجود نیست."
     );
   }
 
-  const validQuestions = data.filter(q => {
-    const answer = Number(q.correct_answer);
-
-    return (
-      q.question_text &&
-      q.option_a &&
-      q.option_b &&
-      q.option_c &&
-      q.option_d &&
-      answer >= 1 &&
-      answer <= 4
+  if (valid.length < count) {
+    throw new Error(
+      `برای ${normalized} فقط ${valid.length} سؤال تأییدشده موجود است؛ تعداد درخواستی ${count} است.`
     );
-  });
-
-  if (!validQuestions.length) {
-    throw new Error("سؤال معتبر و دارای پاسخ صحیح در بانک پیدا نشد.");
   }
 
-  return shuffleQuizQuestions(validQuestions)
-    .slice(0, Math.min(count, validQuestions.length))
+  return shuffleQuizQuestions(valid)
+    .slice(0, count)
     .map(q => ({
       id: q.id,
       subject: q.subject,
@@ -131,23 +119,25 @@ async function fetchQuestionsFromDB(subject, count) {
       answer: Number(q.correct_answer) - 1,
       explanation: q.explanation || "",
       exam_year: q.exam_year,
-      exam_session: q.exam_session
+      exam_session: q.exam_session,
+      source: q.source || "",
+      exam_location: q.exam_location || ""
     }));
 }
 
-/* =====================================
-   ساخت آزمون
-===================================== */
+/* ---------------------------
+   ساخت آزمون تک‌درس
+---------------------------- */
 
 async function createQuizFromDatabase(subject, count, type) {
-  const startButton = document.querySelector(
+  const button = document.querySelector(
     '#quizSetupArea button[onclick="createQuiz()"]'
   );
 
   try {
-    if (startButton) {
-      startButton.disabled = true;
-      startButton.textContent = "در حال دریافت سؤال‌ها...";
+    if (button) {
+      button.disabled = true;
+      button.textContent = "در حال دریافت سؤال‌ها...";
     }
 
     if (!Number.isInteger(Number(count)) || Number(count) < 1) {
@@ -163,29 +153,119 @@ async function createQuizFromDatabase(subject, count, type) {
       Number(count)
     );
 
-    if (!questions.length) {
-      throw new Error("سؤالی برای این آزمون پیدا نشد.");
-    }
-
-    initQuizSession(questions, subject, type);
+    initQuizSession(questions, subject, type, {
+      mode: "single"
+    });
 
   } catch (error) {
     console.error(error);
-    alert(error.message || "ساخت آزمون با خطا مواجه شد.");
-
+    alert(error.message || "ساخت آزمون ناموفق بود.");
   } finally {
-    if (startButton) {
-      startButton.disabled = false;
-      startButton.textContent = "شروع آزمون 🚀";
+    if (button) {
+      button.disabled = false;
+      button.textContent = "شروع آزمون 🚀";
     }
   }
 }
 
-/* =====================================
-   شروع جلسه آزمون
-===================================== */
+/* ---------------------------
+   ساخت آزمون جامع چنددرسی
+---------------------------- */
 
-function initQuizSession(questions, subject, type) {
+async function createComprehensiveQuiz(type) {
+  const subjects = [
+    "زیست‌شناسی",
+    "شیمی",
+    "فیزیک",
+    "ریاضی",
+    "زمین‌شناسی"
+  ];
+
+  const ids = {
+    "زیست‌شناسی": "bio",
+    "شیمی": "chem",
+    "فیزیک": "physics",
+    "ریاضی": "math",
+    "زمین‌شناسی": "earth"
+  };
+
+  const selected = subjects.map(subject => {
+    const id = ids[subject];
+
+    return {
+      subject,
+      count: Number(
+        document.getElementById("count-" + id)?.value || 0
+      ),
+      enabled: !!document.getElementById(
+        "include-" + id
+      )?.checked
+    };
+  }).filter(item => item.enabled && item.count > 0);
+
+  if (!selected.length) {
+    alert("حداقل یک درس و تعداد سؤال آن را انتخاب کن.");
+    return;
+  }
+
+  const button = document.getElementById(
+    "createComprehensiveButton"
+  );
+
+  try {
+    if (button) {
+      button.disabled = true;
+      button.textContent = "در حال آماده‌سازی آزمون جامع...";
+    }
+
+    const groups = await Promise.all(
+      selected.map(item =>
+        fetchQuestionsFromDB(item.subject, item.count)
+      )
+    );
+
+    const questions = shuffleQuizQuestions(
+      groups.flat()
+    );
+
+    const counts = Object.fromEntries(
+      selected.map(item => [
+        item.subject,
+        item.count
+      ])
+    );
+
+    initQuizSession(
+      questions,
+      "آزمون جامع",
+      type,
+      {
+        mode: "comprehensive",
+        subjectCounts: counts
+      }
+    );
+
+  } catch (error) {
+    console.error(error);
+    alert(error.message || "ساخت آزمون جامع ناموفق بود.");
+  } finally {
+    if (button) {
+      button.disabled = false;
+      button.textContent = "شروع آزمون جامع 🚀";
+    }
+  }
+}
+
+/* ---------------------------
+   شروع جلسه آزمون
+---------------------------- */
+
+function initQuizSession(
+  questions,
+  subject,
+  type,
+  options = {}
+) {
   clearInterval(currentQuiz.timerInterval);
 
   currentQuiz = {
@@ -194,18 +274,25 @@ function initQuizSession(questions, subject, type) {
     subject,
     type,
     startTime: Date.now(),
-    duration: type === "زمان‌دار"
-      ? questions.length * QUIZ_SETTINGS.secondsPerQuestion
-      : 0,
+    duration:
+      type === "زمان‌دار"
+        ? questions.length * QUIZ_SETTINGS.secondsPerQuestion
+        : 0,
     timerInterval: null,
-    submitted: false
+    submitted: false,
+    mode: options.mode || "single",
+    subjectCounts: options.subjectCounts || {}
   };
 
-  const setupArea = document.getElementById("quizSetupArea");
-  const quizArea = document.getElementById("quizArea");
+  const setup = document.getElementById("quizSetupArea");
+  const comprehensive = document.getElementById(
+    "comprehensiveSetupArea"
+  );
+  const area = document.getElementById("quizArea");
 
-  if (setupArea) setupArea.style.display = "none";
-  if (quizArea) quizArea.style.display = "block";
+  if (setup) setup.style.display = "none";
+  if (comprehensive) comprehensive.style.display = "none";
+  if (area) area.style.display = "block";
 
   renderQuizUI();
   updateQuizTimer();
@@ -223,135 +310,155 @@ function initQuizSession(questions, subject, type) {
     }
   }, 1000);
 
+  document.querySelectorAll(".page-section").forEach(page => {
+    page.classList.remove("active");
+  });
+
+  document.getElementById("page-quiz")?.classList.add("active");
+
   window.scrollTo({
     top: 0,
     behavior: "smooth"
   });
 }
 
-/* =====================================
-   محاسبه زمان
-===================================== */
+/* ---------------------------
+   زمان آزمون
+---------------------------- */
 
 function getQuizElapsedTime() {
-  if (!currentQuiz.startTime) return 0;
-
-  return Math.floor(
-    (Date.now() - currentQuiz.startTime) / 1000
-  );
+  return currentQuiz.startTime
+    ? Math.floor((Date.now() - currentQuiz.startTime) / 1000)
+    : 0;
 }
 
 function getQuizRemainingTime() {
-  if (currentQuiz.type !== "زمان‌دار") return 0;
-
-  return Math.max(
-    0,
-    currentQuiz.duration - getQuizElapsedTime()
-  );
+  return currentQuiz.type === "زمان‌دار"
+    ? Math.max(
+        0,
+        currentQuiz.duration - getQuizElapsedTime()
+      )
+    : 0;
 }
 
 function formatQuizTime(seconds) {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = seconds % 60;
-
   return (
-    String(minutes).padStart(2, "0") +
+    String(Math.floor(seconds / 60)).padStart(2, "0") +
     ":" +
-    String(remainingSeconds).padStart(2, "0")
+    String(seconds % 60).padStart(2, "0")
   );
 }
 
 function updateQuizTimer() {
-  const timer = document.getElementById("quizTimer");
+  const element = document.getElementById("quizTimer");
 
-  if (!timer) return;
+  if (!element) return;
 
   if (currentQuiz.type === "زمان‌دار") {
     const remaining = getQuizRemainingTime();
 
-    timer.textContent =
-      "⏳ زمان باقی‌مانده: " + formatQuizTime(remaining);
+    element.textContent =
+      "⏳ زمان باقی‌مانده: " +
+      formatQuizTime(remaining);
 
-    if (remaining <= 60) {
-      timer.style.background = "#ffe6ed";
-      timer.style.color = "#c34b70";
-    } else {
-      timer.style.background = "";
-      timer.style.color = "";
-    }
+    element.style.background =
+      remaining <= 60 ? "#ffe6ed" : "";
+
+    element.style.color =
+      remaining <= 60 ? "#c34b70" : "";
 
   } else {
-    timer.textContent =
+    element.textContent =
       "⏱️ زمان سپری‌شده: " +
       formatQuizTime(getQuizElapsedTime());
-
-    timer.style.background = "";
-    timer.style.color = "";
   }
 }
 
-/* =====================================
+/* ---------------------------
    نمایش سؤال‌ها
-===================================== */
+---------------------------- */
 
 function renderQuizUI() {
-  const container = document.getElementById("quizQuestions");
+  const container = document.getElementById(
+    "quizQuestions"
+  );
 
   if (!container) return;
 
+  let lastSubject = "";
+
   container.innerHTML = currentQuiz.questions
-    .map((question, index) => `
-      <div
-        class="card quiz-question"
-        id="quiz-question-${index}"
-      >
-        <h4>
-          سؤال ${Number(index + 1).toLocaleString("fa-IR")}
-        </h4>
+    .map((question, index) => {
+      const heading =
+        question.subject !== lastSubject
+          ? `
+            <h3 class="quiz-subject-heading">
+              ${quizEscapeHTML(question.subject)}
+            </h3>
+          `
+          : "";
 
-        <p>${quizEscapeHTML(question.question_text)}</p>
+      lastSubject = question.subject;
 
-        <div class="quiz-options">
-          ${question.options.map((option, optionIndex) => `
-            <label class="quiz-option">
-              <input
-                type="radio"
-                name="question_${index}"
-                value="${optionIndex}"
-                onchange="selectQuizAnswer(${index}, ${optionIndex})"
-              >
+      return `
+        ${heading}
 
-              <span>
-                ${["الف", "ب", "ج", "د"][optionIndex]}.
-                ${quizEscapeHTML(option)}
-              </span>
-            </label>
-          `).join("")}
-        </div>
+        <article
+          class="card quiz-question"
+          id="quiz-question-${index}"
+        >
+          <h4>
+            سؤال ${Number(index + 1).toLocaleString("fa-IR")}
+          </h4>
 
-        <p class="muted" id="answer-status-${index}">
-          هنوز پاسخی انتخاب نشده است.
-        </p>
-      </div>
-    `)
+          <p>
+            ${quizEscapeHTML(question.question_text)
+              .replace(/\n/g, "<br>")}
+          </p>
+
+          <div class="quiz-options">
+            ${question.options.map((option, optionIndex) => `
+              <label class="quiz-option">
+                <input
+                  type="radio"
+                  name="question_${index}"
+                  value="${optionIndex}"
+                  onchange="selectQuizAnswer(${index},${optionIndex})"
+                >
+
+                <span>
+                  ${["الف", "ب", "ج", "د"][optionIndex]}.
+                  ${quizEscapeHTML(option)}
+                </span>
+              </label>
+            `).join("")}
+          </div>
+
+          <p
+            class="muted"
+            id="answer-status-${index}"
+          >
+            هنوز پاسخی انتخاب نشده است.
+          </p>
+        </article>
+      `;
+    })
     .join("");
 }
 
-/* =====================================
-   ثبت پاسخ کاربر
-===================================== */
+/* ---------------------------
+   انتخاب پاسخ
+---------------------------- */
 
 function selectQuizAnswer(questionIndex, optionIndex) {
-  if (currentQuiz.submitted) return;
-
   if (
-    questionIndex < 0 ||
-    questionIndex >= currentQuiz.questions.length
+    currentQuiz.submitted ||
+    !currentQuiz.questions[questionIndex] ||
+    optionIndex < 0 ||
+    optionIndex > 3
   ) {
     return;
   }
-
-  if (optionIndex < 0 || optionIndex > 3) return;
 
   currentQuiz.answers[questionIndex] = optionIndex;
 
@@ -365,19 +472,17 @@ function selectQuizAnswer(questionIndex, optionIndex) {
   }
 }
 
-/* =====================================
-   محاسبه نتیجه آزمون
-===================================== */
+/* ---------------------------
+   محاسبه نتیجه
+---------------------------- */
 
-function calculateQuizResult() {
-  const questions = currentQuiz.questions;
-
+function summarizeQuestions(questions, answers) {
   let correct = 0;
   let wrong = 0;
   let unanswered = 0;
 
   questions.forEach((question, index) => {
-    const selected = currentQuiz.answers[index];
+    const selected = answers[index];
 
     if (selected === undefined) {
       unanswered++;
@@ -390,7 +495,7 @@ function calculateQuizResult() {
 
   const total = questions.length;
 
-  const rawPercent = total
+  const raw = total
     ? (correct / total) * 100
     : 0;
 
@@ -398,29 +503,164 @@ function calculateQuizResult() {
     ? correct - wrong / QUIZ_SETTINGS.negativeMarkingFactor
     : correct;
 
-  const netPercent = total
+  const net = total
     ? (netScore / total) * 100
     : 0;
-
-  const estimatedTraz = Math.max(
-    0,
-    Math.round(5000 + netPercent * 20)
-  );
 
   return {
     total,
     correct,
     wrong,
     unanswered,
-    percent: Number(rawPercent.toFixed(1)),
-    netPercent: Number(netPercent.toFixed(1)),
-    traz: estimatedTraz
+    percent: Number(raw.toFixed(1)),
+    netPercent: Number(net.toFixed(1))
   };
 }
 
-/* =====================================
-   ثبت نهایی آزمون
-===================================== */
+function calculateQuizResult() {
+  const overall = summarizeQuestions(
+    currentQuiz.questions,
+    currentQuiz.answers
+  );
+
+  const subjectResults = {};
+
+  const subjects = [
+    ...new Set(
+      currentQuiz.questions.map(question => question.subject)
+    )
+  ];
+
+  subjects.forEach(subject => {
+    const indexed = currentQuiz.questions
+      .map((question, index) => ({
+        question,
+        index
+      }))
+      .filter(item => item.question.subject === subject);
+
+    const subsetAnswers = {};
+
+    indexed.forEach((item, index) => {
+      if (
+        currentQuiz.answers[item.index] !== undefined
+      ) {
+        subsetAnswers[index] =
+          currentQuiz.answers[item.index];
+      }
+    });
+
+    subjectResults[subject] = summarizeQuestions(
+      indexed.map(item => item.question),
+      subsetAnswers
+    );
+  });
+
+  const estimatedTraz = Math.max(
+    0,
+    Math.round(5000 + overall.netPercent * 20)
+  );
+
+  return {
+    ...overall,
+    traz: estimatedTraz,
+    subjectResults
+  };
+}
+
+/* ---------------------------
+   ذخیره نتیجه در Supabase
+---------------------------- */
+
+async function saveDetailedExam(
+  result,
+  examDate,
+  duration
+) {
+  const {
+    data: userData,
+    error: userError
+  } = await supabaseClient.auth.getUser();
+
+  if (userError) throw userError;
+
+  const user = userData.user;
+
+  if (!user) {
+    throw new Error("نشست کاربری معتبر نیست.");
+  }
+
+  const examPayload = {
+    user_id: user.id,
+
+    exam_title:
+      currentQuiz.mode === "comprehensive"
+        ? "آزمون جامع"
+        : "آزمون " + currentQuiz.subject,
+
+    exam_date: examDate,
+    total_questions: result.total,
+    correct_count: result.correct,
+    wrong_count: result.wrong,
+    unanswered_count: result.unanswered,
+    raw_percentage: result.percent,
+    net_percentage: result.netPercent,
+    estimated_score: result.traz,
+    subject_results: result.subjectResults
+  };
+
+  const {
+    data: examRow,
+    error: examError
+  } = await supabaseClient
+    .from("exam_results")
+    .insert(examPayload)
+    .select("id")
+    .single();
+
+  if (examError) throw examError;
+
+  const answerRows = currentQuiz.questions.map(
+    (question, index) => ({
+      exam_id: examRow.id,
+      user_id: user.id,
+      question_id: question.id,
+
+      question_number:
+        question.question_number ?? index + 1,
+
+      subject: question.subject,
+
+      selected_answer:
+        currentQuiz.answers[index] === undefined
+          ? null
+          : currentQuiz.answers[index] + 1,
+
+      correct_answer: question.answer + 1,
+
+      is_correct:
+        currentQuiz.answers[index] !== undefined &&
+        currentQuiz.answers[index] === question.answer,
+
+      is_unanswered:
+        currentQuiz.answers[index] === undefined
+    })
+  );
+
+  const {
+    error: answersError
+  } = await supabaseClient
+    .from("exam_answers")
+    .insert(answerRows);
+
+  if (answersError) throw answersError;
+
+  return examRow.id;
+}
+
+/* ---------------------------
+   ثبت و تصحیح آزمون
+---------------------------- */
 
 async function submitQuiz(autoSubmitted = false) {
   if (
@@ -437,7 +677,11 @@ async function submitQuiz(autoSubmitted = false) {
     return;
   }
 
+  const duration = getQuizElapsedTime();
+  const examDate = new Date().toISOString();
+
   currentQuiz.submitted = true;
+
   clearInterval(currentQuiz.timerInterval);
 
   const result = calculateQuizResult();
@@ -446,21 +690,69 @@ async function submitQuiz(autoSubmitted = false) {
     id: "exam_" + Date.now(),
     subject: currentQuiz.subject,
     type: currentQuiz.type,
+    mode: currentQuiz.mode,
     ...result,
-    duration: getQuizElapsedTime(),
-    date: new Date().toISOString()
+    duration,
+    date: examDate,
+    subjectResults: result.subjectResults
   };
 
+  let detailedSaved = false;
+
   try {
-    if (typeof EXAMS !== "undefined" && Array.isArray(EXAMS)) {
+    exam.supabaseId = await saveDetailedExam(
+      result,
+      examDate,
+      duration
+    );
+
+    detailedSaved = true;
+
+  } catch (error) {
+    console.error(
+      "ذخیره تفصیلی آزمون ناموفق بود:",
+      error
+    );
+  }
+
+  try {
+    if (
+      typeof EXAMS !== "undefined" &&
+      Array.isArray(EXAMS)
+    ) {
       EXAMS.push(exam);
-      await DB.set("exams", EXAMS);
+
+      const legacySaved = await DB.set(
+        "exams",
+        EXAMS
+      );
+
+      if (legacySaved === false) {
+        console.warn(
+          "ذخیره سابقه در student_data ناموفق بود."
+        );
+      }
     }
 
   } catch (error) {
-    console.error("خطا در ذخیره نتیجه آزمون:", error);
-    alert("نتیجه محاسبه شد، اما ذخیره آن در فضای ابری با مشکل مواجه شد.");
+    console.error(
+      "ذخیره سابقه آزمون ناموفق بود:",
+      error
+    );
   }
+
+  lastQuizResult = {
+    ...result,
+    exam,
+
+    questions: currentQuiz.questions.map(
+      (question, index) => ({
+        ...question,
+        selected:
+          currentQuiz.answers[index] ?? null
+      })
+    )
+  };
 
   showQuizResult(result);
 
@@ -472,23 +764,22 @@ async function submitQuiz(autoSubmitted = false) {
     renderExams();
   }
 
+  renderDetailedResult(result, detailedSaved);
+
   if (typeof showPage === "function") {
     showPage("exam-result");
   }
 
   if (autoSubmitted) {
-    alert("زمان آزمون تمام شد و پاسخ‌ها به‌صورت خودکار ثبت شدند.");
+    alert(
+      "زمان آزمون تمام شد و پاسخ‌ها ثبت شدند."
+    );
   }
-
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
 }
 
-/* =====================================
-   نمایش نتیجه در صفحه
-===================================== */
+/* ---------------------------
+   نمایش نتیجه کلی
+---------------------------- */
 
 function showQuizResult(result) {
   const values = {
@@ -497,7 +788,7 @@ function showQuizResult(result) {
     "res-correct": result.correct,
     "res-wrong": result.wrong,
     "res-traz": result.traz,
-    "res-percent-text": result.percent + "%"
+    "res-percent-text": result.percent + "٪"
   };
 
   Object.entries(values).forEach(([id, value]) => {
@@ -508,43 +799,401 @@ function showQuizResult(result) {
     }
   });
 
-  const circle = document.getElementById("res-percent-circle");
+  const circle = document.getElementById(
+    "res-percent-circle"
+  );
 
   if (circle) {
-    circle.style.setProperty("--percent", result.percent);
     circle.style.background =
-      `conic-gradient(var(--primary) ${result.percent}%, #eee ${result.percent}% 100%)`;
+      `conic-gradient(
+        var(--primary)
+        ${Math.max(0, Math.min(100, result.percent))}%,
+        #eee 0
+      )`;
   }
 }
 
-/* =====================================
+/* ---------------------------
+   نمایش تحلیل تفصیلی
+---------------------------- */
+
+function renderDetailedResult(result, saved) {
+  const target = document.getElementById(
+    "res-detailed"
+  );
+
+  if (!target) return;
+
+  target.innerHTML = `
+    <div class="stats-grid">
+
+      <div class="stat-card">
+        <span>درصد خالص</span>
+        <strong>${result.netPercent}٪</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>نزده</span>
+        <strong>${result.unanswered}</strong>
+      </div>
+
+      <div class="stat-card">
+        <span>زمان آزمون</span>
+        <strong>
+          ${formatQuizTime(lastQuizResult.exam.duration)}
+        </strong>
+      </div>
+
+    </div>
+
+    <h3>نتیجه هر درس</h3>
+
+    ${Object.entries(result.subjectResults)
+      .map(([subject, item]) => `
+        <div class="list-item">
+          <strong>${quizEscapeHTML(subject)}</strong>
+
+          <span>
+            ${item.percent}٪ خام ·
+            ${item.netPercent}٪ خالص ·
+            ${item.correct} صحیح ·
+            ${item.wrong} غلط ·
+            ${item.unanswered} نزده
+          </span>
+        </div>
+      `)
+      .join("")}
+
+    <p class="muted">
+      ${
+        saved
+          ? "نتیجه و پاسخ‌ها در فضای ابری ذخیره شدند."
+          : "ذخیره تفصیلی ابری انجام نشد؛ اتصال و سیاست‌های دسترسی Supabase را بررسی کن."
+      }
+    </p>
+
+    <div class="field">
+      <label>خروجی آزمون</label>
+
+      <button
+        class="btn"
+        onclick="printQuestionBooklet()"
+      >
+        چاپ دفترچه سؤال / ذخیره PDF
+      </button>
+
+      <button
+        class="btn btn-secondary"
+        onclick="printAnswerSheet()"
+      >
+        چاپ پاسخ‌برگ / ذخیره PDF
+      </button>
+    </div>
+  `;
+}
+
+/* ---------------------------
+   نام داوطلب
+---------------------------- */
+
+function getStudentDisplayName() {
+  const first =
+    document.getElementById("profileFirstName")
+      ?.value?.trim() || "";
+
+  const last =
+    document.getElementById("profileLastName")
+      ?.value?.trim() || "";
+
+  return (
+    first + " " + last
+  ).trim() || "داوطلب کنکور";
+}
+
+/* ---------------------------
+   ساخت صفحه چاپ
+---------------------------- */
+
+function printDocument(title, body) {
+  const win = window.open("", "_blank");
+
+  if (!win) {
+    alert(
+      "برای ساخت PDF، اجازه بازشدن پنجره جدید را فعال کن."
+    );
+    return;
+  }
+
+  const logo = new URL(
+    "logo.png",
+    window.location.href
+  ).href;
+
+  win.document.write(`
+    <!DOCTYPE html>
+    <html lang="fa" dir="rtl">
+
+    <head>
+      <meta charset="UTF-8">
+
+      <title>${quizEscapeHTML(title)}</title>
+
+      <link
+        href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;600;700;800&display=swap"
+        rel="stylesheet"
+      >
+
+      <style>
+        @page {
+          size: A4;
+          margin: 15mm;
+        }
+
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: Vazirmatn, sans-serif;
+          color: #28243a;
+          margin: 0;
+        }
+
+        header {
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          border-bottom: 2px solid #8061ce;
+          padding-bottom: 12px;
+          margin-bottom: 18px;
+        }
+
+        header img {
+          width: 65px;
+          height: 65px;
+          object-fit: contain;
+        }
+
+        h1 {
+          font-size: 20px;
+          color: #6845b5;
+          margin: 0;
+        }
+
+        h2 {
+          font-size: 16px;
+        }
+
+        .meta {
+          font-size: 12px;
+          color: #666;
+          margin-top: 5px;
+        }
+
+        .q {
+          page-break-inside: avoid;
+          border: 1px solid #ddd;
+          border-radius: 9px;
+          padding: 12px;
+          margin: 10px 0;
+        }
+
+        .option {
+          padding: 5px 8px;
+          font-size: 13px;
+        }
+
+        .bubble {
+          display: inline-block;
+          border: 1.5px solid #333;
+          border-radius: 50%;
+          width: 19px;
+          height: 19px;
+          text-align: center;
+          line-height: 17px;
+          margin: 0 5px;
+        }
+
+        .answer-row {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          border-bottom: 1px solid #ddd;
+          padding: 10px 2px;
+          page-break-inside: avoid;
+        }
+
+        @media print {
+          button {
+            display: none;
+          }
+        }
+      </style>
+    </head>
+
+    <body>
+
+      <header>
+        <img src="${logo}" alt="لوگو">
+
+        <div>
+          <h1>
+            کنکوریار | ${quizEscapeHTML(title)}
+          </h1>
+
+          <div class="meta">
+            نام: ${quizEscapeHTML(getStudentDisplayName())}
+            ·
+            تاریخ: ${new Date().toLocaleDateString("fa-IR")}
+          </div>
+        </div>
+      </header>
+
+      ${body}
+
+      <script>
+        window.onload = () => {
+          setTimeout(() => window.print(), 500);
+        };
+      <\/script>
+
+    </body>
+    </html>
+  `);
+
+  win.document.close();
+}
+
+/* ---------------------------
+   چاپ دفترچه سؤال
+---------------------------- */
+
+function printQuestionBooklet() {
+  if (!lastQuizResult) return;
+
+  const body = lastQuizResult.questions
+    .map((question, index) => `
+      <section class="q">
+
+        <strong>
+          ${index + 1}.
+          ${quizEscapeHTML(question.subject)}
+        </strong>
+
+        <p>
+          ${quizEscapeHTML(question.question_text)
+            .replace(/\n/g, "<br>")}
+        </p>
+
+        ${question.options.map((option, optionIndex) => `
+          <div class="option">
+            ${["الف", "ب", "ج", "د"][optionIndex]})
+            ${quizEscapeHTML(option)}
+          </div>
+        `).join("")}
+
+      </section>
+    `)
+    .join("");
+
+  printDocument(
+    "دفترچه سؤالات",
+    body
+  );
+}
+
+/* ---------------------------
+   چاپ پاسخ‌برگ
+---------------------------- */
+
+function printAnswerSheet() {
+  if (!lastQuizResult) return;
+
+  const body = `
+    <h2>پاسخ‌برگ آزمون</h2>
+
+    ${lastQuizResult.questions
+      .map((question, index) => `
+        <div class="answer-row">
+
+          <strong>
+            ${index + 1}.
+            ${quizEscapeHTML(question.subject)}
+          </strong>
+
+          <span>
+            ${["الف", "ب", "ج", "د"]
+              .map(option => `
+                <span class="bubble">
+                  ${option}
+                </span>
+              `)
+              .join("")}
+          </span>
+
+        </div>
+      `)
+      .join("")}
+
+    <p class="meta">
+      پاسخ صحیح در این پاسخ‌برگ درج نشده است.
+    </p>
+  `;
+
+  printDocument(
+    "پاسخ‌برگ",
+    body
+  );
+}
+
+/* ---------------------------
    خروج از آزمون
-===================================== */
+---------------------------- */
 
 function exitQuiz() {
   if (
     !currentQuiz.submitted &&
-    !confirm("با خروج از آزمون، پاسخ‌ها ثبت نمی‌شوند. ادامه می‌دهی؟")
+    !confirm(
+      "با خروج از آزمون، پاسخ‌ها ثبت نمی‌شوند. ادامه می‌دهی؟"
+    )
   ) {
     return;
   }
 
   clearInterval(currentQuiz.timerInterval);
 
-  currentQuiz.submitted = true;
+  currentQuiz = {
+    questions: [],
+    answers: {},
+    subject: "",
+    type: "بدون زمان",
+    startTime: null,
+    duration: 0,
+    timerInterval: null,
+    submitted: true,
+    mode: "single",
+    subjectCounts: {}
+  };
 
-  const setupArea = document.getElementById("quizSetupArea");
-  const quizArea = document.getElementById("quizArea");
+  document.getElementById(
+    "quizSetupArea"
+  )?.style.setProperty("display", "block");
 
-  if (setupArea) setupArea.style.display = "block";
-  if (quizArea) quizArea.style.display = "none";
+  document.getElementById(
+    "comprehensiveSetupArea"
+  )?.style.setProperty("display", "block");
 
-  const questions = document.getElementById("quizQuestions");
+  document.getElementById(
+    "quizArea"
+  )?.style.setProperty("display", "none");
 
-  if (questions) questions.innerHTML = "";
+  const questions = document.getElementById(
+    "quizQuestions"
+  );
 
-  currentQuiz.questions = [];
-  currentQuiz.answers = {};
+  if (questions) {
+    questions.innerHTML = "";
+  }
 
   if (typeof showPage === "function") {
     showPage("quiz");
