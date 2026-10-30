@@ -1,34 +1,21 @@
 
 /* =====================================
    سیستم مدیریت پروفایل کنکوریار
+   ذخیره اطلاعات در جدول student_data
 ===================================== */
 
-// دریافت کاربر از نشست مستقیم Supabase
 const PROFILE = {
 
-  async getCurrentUser() {
-    const { data, error } =
-      await supabaseClient.auth.getSession();
-
-    if (error) throw error;
-
-    const user = data?.session?.user;
+  async get() {
+    const user = await AUTH.getUser();
 
     if (!user || !user.id) {
-      throw new Error(
-        "نشست ورود پیدا نشد. لطفاً ابتدا وارد حساب کاربری شو."
-      );
+      throw new Error("ابتدا وارد حساب کاربری خودت شو.");
     }
 
-    return user;
-  },
-
-  async get() {
-    const user = await this.getCurrentUser();
-
     const { data, error } = await supabaseClient
-      .from("student_profiles")
-      .select("*")
+      .from("student_data")
+      .select("first_name, last_name")
       .eq("user_id", user.id)
       .maybeSingle();
 
@@ -38,21 +25,24 @@ const PROFILE = {
   },
 
   async save(firstName, lastName) {
-    const user = await this.getCurrentUser();
+    const user = await AUTH.getUser();
+
+    if (!user || !user.id) {
+      throw new Error("نشست کاربری معتبر نیست. دوباره وارد شو.");
+    }
 
     const profile = {
       user_id: user.id,
       first_name: firstName.trim(),
-      last_name: lastName.trim(),
-      updated_at: new Date().toISOString()
+      last_name: lastName.trim()
     };
 
     const { data, error } = await supabaseClient
-      .from("student_profiles")
+      .from("student_data")
       .upsert(profile, {
         onConflict: "user_id"
       })
-      .select()
+      .select("first_name, last_name")
       .single();
 
     if (error) throw error;
@@ -125,7 +115,7 @@ async function saveProfile() {
 
   if (!firstName || !lastName) {
     message.textContent =
-      "لطفاً نام و نام خانوادگی را وارد کن.";
+      "نام و نام خانوادگی را وارد کن.";
 
     message.style.color = "red";
     return;
@@ -134,7 +124,7 @@ async function saveProfile() {
   try {
     message.textContent = "در حال ذخیره اطلاعات...";
 
-    message.style.color = "inherit";
+    message.style.color = "gray";
 
     await PROFILE.save(firstName, lastName);
 
@@ -147,7 +137,7 @@ async function saveProfile() {
     console.error("Profile saving error:", error);
 
     message.textContent =
-      "ذخیره اطلاعات انجام نشد: " + error.message;
+      "ذخیره اطلاعات ناموفق بود: " + error.message;
 
     message.style.color = "red";
   }
