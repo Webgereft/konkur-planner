@@ -1,14 +1,11 @@
 
 /* =====================================
-   سیستم ورود و ثبت نام کنکوریار
+   سیستم احراز هویت کنکوریار
 ===================================== */
 
 const AUTH = {
 
-  /* =====================================
-     ثبت نام
-  ===================================== */
-
+  /* ثبت نام */
   async register(email, password) {
     email = (email || "").trim().toLowerCase();
 
@@ -29,8 +26,7 @@ const AUTH = {
           password,
           options: {
             emailRedirectTo:
-              window.location.origin +
-              window.location.pathname
+              window.location.origin + window.location.pathname
           }
         });
 
@@ -38,31 +34,22 @@ const AUTH = {
 
       if (data.session && data.user) {
         await this.handleSignedIn(data.user);
-
         alert("ثبت‌نام موفق بود! خوش آمدی 🌸");
-        return true;
-
-      } else {
-        alert(
-          "ثبت‌نام انجام شد. اگر تأیید ایمیل فعال است، ایمیلت را بررسی کن."
-        );
-
         return true;
       }
 
+      alert("ثبت‌نام انجام شد. ایمیلت را برای تأیید حساب بررسی کن.");
+      return true;
+
     } catch (error) {
       console.error("Register error:", error);
-
       alert("خطا در ثبت‌نام: " + error.message);
       return false;
     }
   },
 
 
-  /* =====================================
-     ورود
-  ===================================== */
-
+  /* ورود */
   async login(email, password) {
     email = (email || "").trim().toLowerCase();
 
@@ -87,22 +74,17 @@ const AUTH = {
       await this.handleSignedIn(data.user);
 
       alert("با موفقیت وارد شدی 💜");
-
       return true;
 
     } catch (error) {
       console.error("Login error:", error);
-
       alert("خطا در ورود: " + error.message);
       return false;
     }
   },
 
 
-  /* =====================================
-     ایجاد اطلاعات اولیه کاربر
-  ===================================== */
-
+  /* ایجاد اطلاعات اولیه کاربر */
   async handleSignedIn(user) {
     if (!user || !user.id) {
       throw new Error("اطلاعات حساب کاربری معتبر نیست.");
@@ -127,23 +109,17 @@ const AUTH = {
   },
 
 
-  /* =====================================
-     دریافت کاربر فعلی
-  ===================================== */
-
+  /* دریافت کاربر فعلی */
   async getUser() {
     try {
       const { data, error } =
         await supabaseClient.auth.getSession();
 
-      if (error) {
-        console.error("Get session error:", error);
-        throw error;
-      }
+      if (error) throw error;
 
       const sessionUser = data?.session?.user;
 
-      if (sessionUser && sessionUser.id) {
+      if (sessionUser?.id) {
         return sessionUser;
       }
 
@@ -164,10 +140,7 @@ const AUTH = {
   },
 
 
-  /* =====================================
-     بررسی نشست کاربر
-  ===================================== */
-
+  /* بررسی نشست */
   async checkSession() {
     const user = await this.getUser();
 
@@ -197,7 +170,7 @@ const AUTH = {
 
 
   /* =====================================
-     خروج از حساب
+     خروج کامل از حساب
   ===================================== */
 
   async logout() {
@@ -206,17 +179,45 @@ const AUTH = {
     }
 
     try {
+      // خروج از نشست محلی
       const { error } =
-        await supabaseClient.auth.signOut();
+        await supabaseClient.auth.signOut({
+          scope: "local"
+        });
 
       if (error) throw error;
 
-      window.location.reload();
+      // اطمینان از پاک شدن نشست
+      const { data } =
+        await supabaseClient.auth.getSession();
+
+      if (data?.session) {
+        throw new Error("نشست کاربری هنوز فعال است.");
+      }
+
+      // نمایش صفحه ورود
+      const authPage =
+        document.getElementById("authPage");
+
+      const appContent =
+        document.getElementById("appContent");
+
+      if (appContent) {
+        appContent.style.display = "none";
+      }
+
+      if (authPage) {
+        authPage.style.display = "flex";
+      }
+
+      // بارگذاری مجدد صفحه
+      window.location.replace(
+        window.location.pathname
+      );
 
     } catch (error) {
       console.error("Logout error:", error);
-
-      alert("خطا در خروج: " + error.message);
+      alert("خطا در خروج از حساب: " + error.message);
     }
   }
 
@@ -302,10 +303,8 @@ async function initializeAuthentication() {
   try {
     const user = await AUTH.checkSession();
 
-    if (user) {
-      if (typeof init === "function") {
-        await init();
-      }
+    if (user && typeof init === "function") {
+      await init();
     }
 
     return user;
