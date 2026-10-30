@@ -1,47 +1,75 @@
-// شناسه ثابت برای ردیف اطلاعات کاربر (چون فعلاً سیستم لاگین نداریم)
-const CLOUD_ROW_ID = 1;
 
 const DB = {
-  // خواندن اطلاعات از Supabase
+  allowedKeys: ["config", "plan", "exams", "mistakes"],
+
   async get(key, fallback = null) {
     try {
+      if (!this.allowedKeys.includes(key)) {
+        throw new Error("کلید ذخیره‌سازی نامعتبر است.");
+      }
+
+      const user = (await supabaseClient.auth.getUser()).data.user;
+
+      if (!user) return fallback;
+
       const { data, error } = await supabaseClient
-        .from('user_data')
+        .from("student_data")
         .select(key)
-        .eq('id', CLOUD_ROW_ID)
-        .single();
-      
-      // اگر ردیفی وجود نداشت (خطای PGRST116)، مقدار پیش‌فرض را برگردان
-      if (error && error.code === 'PGRST116') return fallback;
+        .eq("user_id", user.id)
+        .maybeSingle();
+
       if (error) throw error;
-      
-      return data && data[key] ? data[key] : fallback;
-    } catch (err) {
-      console.error(`خطا در خواندن ${key} از Supabase:`, err);
+
+      if (!data || data[key] === null || data[key] === undefined) {
+        return fallback;
+      }
+
+      return data[key];
+
+    } catch (error) {
+      console.error("خطا در خواندن اطلاعات:", error);
       return fallback;
     }
   },
 
-  // ذخیره اطلاعات در Supabase (Upsert: اگر نبود بساز، اگر بود آپدیت کن)
   async set(key, value) {
     try {
+      if (!this.allowedKeys.includes(key)) {
+        throw new Error("کلید ذخیره‌سازی نامعتبر است.");
+      }
+
+      const { data: { user }, error: userError } =
+        await supabaseClient.auth.getUser();
+
+      if (userError) throw userError;
+
+      if (!user) {
+        throw new Error("برای ذخیره اطلاعات ابتدا وارد حساب شو.");
+      }
+
       const { error } = await supabaseClient
-        .from('user_data')
-        .upsert({ 
-          id: CLOUD_ROW_ID, 
-          [key]: value, 
-          updated_at: new Date() 
+        .from("student_data")
+        .upsert({
+          user_id: user.id,
+          [key]: value,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: "user_id"
         });
-      
+
       if (error) throw error;
-      console.log(`اطلاعات (${key}) در ابر ذخیره شد.`);
-    } catch (err) {
-      console.error(`خطا در ذخیره ${key} در Supabase:`, err);
-      alert("خطا در ذخیره اطلاعات در فضای ابری. لطفاً اتصال اینترنت را بررسی کنید.");
+
+      console.log("اطلاعات کاربر ذخیره شد:", key);
+      return true;
+
+    } catch (error) {
+      console.error("خطا در ذخیره اطلاعات:", error);
+      alert(error.message || "ذخیره اطلاعات با مشکل مواجه شد.");
+      return false;
     }
   },
 
   async remove(key) {
-    await this.set(key, null);
+    return this.set(key, null);
   }
 };
