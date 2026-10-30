@@ -1,7 +1,7 @@
 
 /* =====================================
-   سیستم مدیریت پروفایل کنکوریار
-   ذخیره اطلاعات در student_data
+   مدیریت پروفایل کنکوریار
+   ذخیره در جدول student_profiles
 ===================================== */
 
 const PROFILE = {
@@ -19,7 +19,7 @@ const PROFILE = {
     }
 
     const { data, error } = await supabaseClient
-      .from("student_data")
+      .from("student_profiles")
       .select("first_name, last_name")
       .eq("user_id", user.id)
       .maybeSingle();
@@ -41,53 +41,29 @@ const PROFILE = {
       throw new Error("نشست معتبر نیست. دوباره وارد حساب شو.");
     }
 
-    const cleanFirstName = (firstName || "").trim();
-    const cleanLastName = (lastName || "").trim();
+    firstName = (firstName || "").trim();
+    lastName = (lastName || "").trim();
 
-    if (!cleanFirstName || !cleanLastName) {
+    if (!firstName || !lastName) {
       throw new Error("نام و نام خانوادگی را کامل وارد کن.");
     }
 
-    // ابتدا بررسی می‌کنیم رکورد کاربر وجود دارد یا نه
-    const { data: existing, error: checkError } =
-      await supabaseClient
-        .from("student_data")
-        .select("user_id")
-        .eq("user_id", user.id)
-        .maybeSingle();
+    const { data, error } = await supabaseClient
+      .from("student_profiles")
+      .upsert({
+        user_id: user.id,
+        first_name: firstName,
+        last_name: lastName,
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: "user_id"
+      })
+      .select("first_name, last_name")
+      .single();
 
-    if (checkError) throw checkError;
+    if (error) throw error;
 
-    let result;
-
-    if (existing) {
-      // فقط نام و نام خانوادگی تغییر می‌کند
-      result = await supabaseClient
-        .from("student_data")
-        .update({
-          first_name: cleanFirstName,
-          last_name: cleanLastName
-        })
-        .eq("user_id", user.id)
-        .select("first_name, last_name")
-        .single();
-
-    } else {
-      // اگر رکورد وجود نداشت، ایجاد می‌کنیم
-      result = await supabaseClient
-        .from("student_data")
-        .insert({
-          user_id: user.id,
-          first_name: cleanFirstName,
-          last_name: cleanLastName
-        })
-        .select("first_name, last_name")
-        .single();
-    }
-
-    if (result.error) throw result.error;
-
-    return result.data;
+    return data;
   }
 };
 
@@ -116,9 +92,7 @@ async function loadProfile() {
       lastNameInput.value = profile?.last_name || "";
     }
 
-    if (message) {
-      message.textContent = "";
-    }
+    if (message) message.textContent = "";
 
   } catch (error) {
     console.error("Profile loading error:", error);
@@ -155,8 +129,7 @@ async function saveProfile() {
   const lastName = lastNameInput.value.trim();
 
   if (!firstName || !lastName) {
-    message.textContent =
-      "نام و نام خانوادگی را وارد کن.";
+    message.textContent = "نام و نام خانوادگی را وارد کن.";
     message.style.color = "red";
     return;
   }
