@@ -429,8 +429,6 @@
       font-weight: 800;
     }
 
-    /* آزمون جامع */
-
     .subject-pick {
       display: grid;
       grid-template-columns: 1fr 120px;
@@ -472,17 +470,9 @@
       border-radius: 12px;
     }
 
-    .quiz-question h4 {
-      color: var(--primary-dark);
-    }
-
-    .quiz-question p {
-      line-height: 2;
-    }
-
-    .quiz-option span {
-      line-height: 1.9;
-    }
+    .quiz-question h4 { color: var(--primary-dark); }
+    .quiz-question p { line-height: 2; }
+    .quiz-option span { line-height: 1.9; }
 
     .result-detail-grid {
       display: grid;
@@ -490,9 +480,7 @@
       gap: 12px;
     }
 
-    .result-detail-grid .stat-card {
-      padding: 15px;
-    }
+    .result-detail-grid .stat-card { padding: 15px; }
 
     .analytics-bar {
       height: 12px;
@@ -587,7 +575,6 @@
   <div class="app-layout">
     <aside class="sidebar">
       <button class="nav-btn active" onclick="showPage('dashboard')">🏠 داشبورد</button>
-      <button class="nav-btn" onclick="showPage('profile')">👤 پروفایل من</button>
       <button class="nav-btn" onclick="showPage('setup')">⚙️ تنظیمات</button>
       <button class="nav-btn" onclick="showPage('plan')">📅 برنامه درسی</button>
       <button class="nav-btn" onclick="showPage('quiz')">📝 آزمون</button>
@@ -597,7 +584,6 @@
 
     <main class="main-content">
 
-      <!-- داشبورد -->
       <section id="page-dashboard" class="page-section active">
         <h2 class="page-title">داشبورد من 🌸</h2>
 
@@ -630,30 +616,6 @@
         </div>
       </section>
 
-      <!-- پروفایل -->
-      <section id="page-profile" class="page-section">
-        <h2 class="page-title">پروفایل من 👤</h2>
-
-        <div class="card">
-          <h3>اطلاعات شخصی</h3>
-          <p class="muted">نام و نام خانوادگی برای نمایش در کارنامه و فایل‌های PDF استفاده می‌شود. تکمیل این بخش اختیاری است.</p>
-
-          <div class="field">
-            <label for="profileFirstName">نام</label>
-            <input type="text" id="profileFirstName" placeholder="مثلاً علی" maxlength="50" autocomplete="given-name">
-          </div>
-
-          <div class="field">
-            <label for="profileLastName">نام خانوادگی</label>
-            <input type="text" id="profileLastName" placeholder="مثلاً رضایی" maxlength="70" autocomplete="family-name">
-          </div>
-
-          <button class="btn" onclick="saveProfile()">ذخیره اطلاعات</button>
-          <p id="profileMessage" class="muted" aria-live="polite"></p>
-        </div>
-      </section>
-
-      <!-- تنظیمات -->
       <section id="page-setup" class="page-section">
         <h2 class="page-title">تنظیمات برنامه ⚙️</h2>
 
@@ -688,7 +650,6 @@
         </div>
       </section>
 
-      <!-- برنامه درسی -->
       <section id="page-plan" class="page-section">
         <h2 class="page-title">برنامه درسی من 📅</h2>
 
@@ -735,11 +696,9 @@
         <div id="weeklyPlan"></div>
       </section>
 
-      <!-- آزمون -->
       <section id="page-quiz" class="page-section">
         <h2 class="page-title">آزمون آنلاین 📝</h2>
 
-        <!-- آزمون تک‌درس -->
         <div id="quizSetupArea" class="card">
           <h3>آزمون تک‌درس</h3>
           <p class="muted">یک درس را انتخاب کن و از بانک سؤال‌های تأییدشده آزمون بده.</p>
@@ -776,48 +735,32 @@
           <button class="btn" onclick="createQuiz()">شروع آزمون تک‌درس 🚀</button>
         </div>
 
-        <!-- آزمون جامع -->
         <div id="comprehensiveSetupArea" class="card">
           <h3>آزمون جامع چنددرسی 🎯</h3>
           <p class="muted">درس‌های موردنظر را فعال کن و تعداد سؤال هر درس را مشخص کن.</p>
 
           <div class="subject-pick">
-            <label>
-              <input type="checkbox" id="include-bio" checked>
-              زیست‌شناسی
-            </label>
+            <label><input type="checkbox" id="include-bio" checked> زیست‌شناسی</label>
             <input type="number" id="count-bio" min="1" max="100" value="20">
           </div>
 
           <div class="subject-pick">
-            <label>
-              <input type="checkbox" id="include-chem" checked>
-              شیمی
-            </label>
+            <label><input type="checkbox" id="include-chem" checked> شیمی</label>
             <input type="number" id="count-chem" min="1" max="100" value="10">
           </div>
 
           <div class="subject-pick">
-            <label>
-              <input type="checkbox" id="include-physics" checked>
-              فیزیک
-            </label>
+            <label><input type="checkbox" id="include-physics" checked> فیزیک</label>
             <input type="number" id="count-physics" min="1" max="100" value="10">
           </div>
 
           <div class="subject-pick">
-            <label>
-              <input type="checkbox" id="include-math" checked>
-              ریاضی
-            </label>
+            <label><input type="checkbox" id="include-math" checked> ریاضی</label>
             <input type="number" id="count-math" min="1" max="100" value="10">
           </div>
 
           <div class="subject-pick">
-            <label>
-              <input type="checkbox" id="include-earth">
-              زمین‌شناسی
-            </label>
+            <label><input type="checkbox" id="include-earth"> زمین‌شناسی</label>
             <input type="number" id="count-earth" min="1" max="100" value="5">
           </div>
 
@@ -829,31 +772,20 @@
             </select>
           </div>
 
-          <button
-            class="btn btn-secondary"
-            id="createComprehensiveButton"
-            onclick="startComprehensiveQuiz()"
-          >
+          <button class="btn btn-secondary" id="createComprehensiveButton" onclick="startComprehensiveQuiz()">
             شروع آزمون جامع 🚀
           </button>
         </div>
 
-        <!-- محیط اجرای آزمون -->
         <div id="quizArea" style="display:none">
           <div id="quizTimer">زمان آزمون</div>
           <div id="quizQuestions"></div>
 
-          <button class="btn" onclick="submitQuiz()">
-            ثبت و تصحیح آزمون
-          </button>
-
-          <button class="btn btn-danger" onclick="exitQuiz()">
-            خروج از آزمون
-          </button>
+          <button class="btn" onclick="submitQuiz()">ثبت و تصحیح آزمون</button>
+          <button class="btn btn-danger" onclick="exitQuiz()">خروج از آزمون</button>
         </div>
       </section>
 
-      <!-- نتیجه آزمون -->
       <section id="page-exam-result" class="page-section">
         <h2 class="page-title">نتیجه آزمون 🎯</h2>
 
@@ -865,41 +797,23 @@
           </div>
 
           <div class="stats-grid">
-            <div class="stat-card">
-              <span>تعداد سؤال</span>
-              <strong id="res-total">۰</strong>
-            </div>
-
-            <div class="stat-card">
-              <span>پاسخ صحیح</span>
-              <strong id="res-correct">۰</strong>
-            </div>
-
-            <div class="stat-card">
-              <span>پاسخ غلط</span>
-              <strong id="res-wrong">۰</strong>
-            </div>
+            <div class="stat-card"><span>تعداد سؤال</span><strong id="res-total">۰</strong></div>
+            <div class="stat-card"><span>پاسخ صحیح</span><strong id="res-correct">۰</strong></div>
+            <div class="stat-card"><span>پاسخ غلط</span><strong id="res-wrong">۰</strong></div>
           </div>
 
           <h3>تراز تخمینی: <span id="res-traz">۰</span></h3>
+          <p class="muted">تراز نمایش‌داده‌شده تخمینی است و تراز رسمی سازمان سنجش نیست.</p>
 
-          <p class="muted">
-            تراز نمایش‌داده‌شده تخمینی است و تراز رسمی سازمان سنجش نیست.
-          </p>
-
-          <button class="btn" onclick="showPage('quiz')">
-            آزمون جدید
-          </button>
+          <button class="btn" onclick="showPage('quiz')">آزمون جدید</button>
         </div>
 
-        <!-- تحلیل تفصیلی آزمون -->
         <div class="card" id="res-detailed">
           <h3>تحلیل تفصیلی آزمون</h3>
           <p class="muted">نتایج هر درس پس از ثبت آزمون اینجا نمایش داده می‌شود.</p>
         </div>
       </section>
 
-      <!-- تحلیل عملکرد -->
       <section id="page-analytics" class="page-section">
         <h2 class="page-title">تحلیل عملکرد 📊</h2>
 
@@ -918,7 +832,6 @@
         </div>
       </section>
 
-      <!-- دفتر اشتباهات -->
       <section id="page-mistakes" class="page-section">
         <h2 class="page-title">دفتر اشتباهات من 📕</h2>
 
@@ -928,9 +841,7 @@
             <textarea id="mistakeText" rows="4" placeholder="اشتباه یا نکته‌ای که باید دوباره مرور کنی..."></textarea>
           </div>
 
-          <button class="btn" onclick="addMistake()">
-            ثبت در دفتر اشتباهات
-          </button>
+          <button class="btn" onclick="addMistake()">ثبت در دفتر اشتباهات</button>
         </div>
 
         <div id="mistakeList"></div>
@@ -940,7 +851,6 @@
   </div>
 </div>
 
-<!-- شمارش معکوس -->
 <script>
 (function () {
   const targetDate = new Date("2027-06-30T20:30:00Z").getTime();
@@ -974,7 +884,6 @@
 <script src="js/planner.js"></script>
 <script src="js/quiz-engine.js"></script>
 <script src="js/auth.js"></script>
-<script src="js/profile.js"></script>
 <script src="js/app.js"></script>
 
 <!-- ورود و ثبت‌نام -->
@@ -1116,10 +1025,6 @@ async function initializeAuthentication() {
 
       if (typeof init === "function") {
         await init();
-      }
-
-      if (typeof loadProfile === "function") {
-        await loadProfile();
       }
 
     } else {
